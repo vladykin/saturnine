@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -jar /home/av/projects/utils/saturnine/Pb/dist/Pb.jar "$@"
+java -jar /home/av/projects/utils/saturnine/kenai_repo/Pb/dist/Pb.jar "$@"
