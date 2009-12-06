@@ -1,0 +1,3 @@
+#!/bin/sh
+
+java -cp /home/av/projects/utils/saturnine/kenai_repo/Pb/dist/Pb.jar org.saturnine.ui.FileChooserTree "$@"

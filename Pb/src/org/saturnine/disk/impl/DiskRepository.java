@@ -127,7 +127,7 @@ public class DiskRepository implements Repository {
         this.dir = dir;
     }
 
-    /*package*/ String getPath() {
+    public String getPath() {
         return dir.getAbsolutePath();
     }
 
