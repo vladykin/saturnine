@@ -1,20 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package org.saturnine.commands;
+package org.saturnine.cli.commands;
 
 import java.io.File;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.PbException;
+import org.saturnine.cli.PbCommand;
 import org.saturnine.disk.impl.DiskRepository;
 
 /**
- *
  * @author Alexey Vladykin
  */
-public class LogCommand implements Command {
+public class LogCommand implements PbCommand {
 
+    @Override
+    public String getName() {
+        return "log";
+    }
+
+    @Override
+    public String getDescription() {
+        return "show changesets";
+    }
+
+    @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.open(new File("."));
         String changesetID = repository.getCurrentID();

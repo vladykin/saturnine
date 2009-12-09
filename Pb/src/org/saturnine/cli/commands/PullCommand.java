@@ -1,20 +1,26 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-package org.saturnine.commands;
+package org.saturnine.cli.commands;
 
 import java.io.File;
 import org.saturnine.api.PbException;
+import org.saturnine.cli.PbCommand;
 import org.saturnine.disk.impl.DiskRepository;
 
 /**
- *
  * @author Alexey Vladykin
  */
-public class PullCommand implements Command {
+public class PullCommand implements PbCommand {
 
+    @Override
+    public String getName() {
+        return "pull";
+    }
+
+    @Override
+    public String getDescription() {
+        return "pull changesets from parent repository";
+    }
+
+    @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.find(new File("."));
 
@@ -26,5 +32,4 @@ public class PullCommand implements Command {
         DiskRepository parent = DiskRepository.open(new File(parentPath));
         repository.pull(parent);
     }
-
 }
