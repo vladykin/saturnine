@@ -1,20 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.api;
 
+import java.util.Collection;
 import java.util.List;
-import org.saturnine.disk.impl.DiskRepository;
 
 /**
- *
  * @author Alexey Vladykin
  */
 public interface Repository {
 
-    //URL getURL();
+    String getPath();
 
     String getParent() throws PbException;
 
@@ -24,17 +18,21 @@ public interface Repository {
 
     Changeset getChangeset(String id) throws PbException;
 
-    List<UncommittedFileChange> status() throws PbException;
+    List<FileChange> getWorkDirChanges(Collection<String> paths) throws PbException;
 
-    void add(String path) throws PbException;
+    boolean isAboutToAdd(String path) throws PbException;
 
-    void remove(String path) throws PbException;
+    void add(Collection<String> paths) throws PbException;
 
-    void move(String path) throws PbException;
+    boolean isAboutToRemove(String path) throws PbException;
 
-    void commit(String author, String message) throws PbException;
+    void remove(Collection<String> paths) throws PbException;
 
-    void pull(DiskRepository parent) throws PbException;
+    void move(String oldPath, String newPath) throws PbException;
 
-    void push(DiskRepository parent) throws PbException;
+    void commit(String author, String message, Collection<String> paths) throws PbException;
+
+    void pull(Repository parent) throws PbException;
+
+    void push(Repository parent) throws PbException;
 }

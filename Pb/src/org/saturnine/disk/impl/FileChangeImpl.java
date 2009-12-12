@@ -1,49 +1,35 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.disk.impl;
 
 import org.saturnine.api.FileChangeType;
-import org.saturnine.api.FileState;
-import org.saturnine.api.UncommittedFileChange;
+import org.saturnine.api.FileChange;
 
 /**
- *
  * @author Alexey Vladykin
  */
-public class FileChangeImpl implements UncommittedFileChange {
+public class FileChangeImpl implements FileChange {
 
+    private final String path;
     private final FileChangeType type;
-    private final FileState orig;
-    private final FileState result;
-    private final boolean approved;
+    private final String copyOf;
 
-    public FileChangeImpl(FileChangeType type, FileState orig, FileState result, boolean approved) {
+    public FileChangeImpl(String path, FileChangeType type, String copyOf) {
+        this.path = path;
         this.type = type;
-        this.orig = orig;
-        this.result = result;
-        this.approved = approved;
+        this.copyOf = copyOf;
     }
 
-    public long getTimestamp() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @Override
+    public String getPath() {
+        return path;
     }
 
-    public boolean isApproved() {
-        return approved;
-    }
-
+    @Override
     public FileChangeType getType() {
         return type;
     }
 
-    public FileState getOriginalState() {
-        return orig;
-    }
-
-    public FileState getResultState() {
-        return result;
+    @Override
+    public String getCopyOf() {
+        return copyOf;
     }
 }

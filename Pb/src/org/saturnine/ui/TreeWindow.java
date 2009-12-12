@@ -11,8 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
-import org.saturnine.api.UncommittedFileChange;
 import org.saturnine.disk.impl.DiskRepository;
 
 /**
@@ -41,7 +41,7 @@ public final class TreeWindow implements Runnable {
          yesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    repository.commit("Alexey", "Dummy message");
+                    repository.commit("Alexey", "Dummy message", null);
                     form.dispose();
                 } catch (PbException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -87,25 +87,21 @@ public final class TreeWindow implements Runnable {
         form.setVisible(true);
     }
 
-    void buildtree(DiskRepository repository, List<UncommittedFileChange> changes) {
+    void buildtree(DiskRepository repository, List<FileChange> changes) {
         caption = "Check needed files";
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
         root.setUserObject(repository.getPath());
-        for (UncommittedFileChange change : changes) {
+        for (FileChange change : changes) {
             String text = null;
             switch (change.getType()) {
                 case ADD:
-                    text = "Added " + change.getResultState().getPath();
+                    text = "Added " + change.getPath();
                     break;
                 case MODIFY:
-                    text = "Modified " + change.getResultState().getPath();
-                    break;
-                case MOVE:
-                case MOVE_MODIFY:
-                    text = "Moved " + change.getOriginalState().getPath() + " -> " + change.getResultState().getPath();
+                    text = "Modified " + change.getPath();
                     break;
                 case REMOVE:
-                    text = "Removed " + change.getOriginalState().getPath();
+                    text = "Removed " + change.getPath();
                     break;
             }
             root.add(new DefaultMutableTreeNode(text));

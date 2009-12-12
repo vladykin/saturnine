@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class Utils {
 
+    private Utils() {}
+
     public static <T> List<T> packedListCopy(List<T> list) {
         if (list.isEmpty()) {
             return Collections.<T>emptyList();
@@ -98,10 +100,11 @@ public class Utils {
             int halfbyte = (data[i] >>> 4) & 0x0F;
             int two_halfs = 0;
             do {
-                if ((0 <= halfbyte) && (halfbyte <= 9))
+                if ((0 <= halfbyte) && (halfbyte <= 9)) {
                     buf.append((char) ('0' + halfbyte));
-                else
+                } else {
                     buf.append((char) ('a' + (halfbyte - 10)));
+                }
                 halfbyte = data[i] & 0x0F;
             } while(two_halfs++ < 1);
         }

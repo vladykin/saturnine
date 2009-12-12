@@ -1,8 +1,9 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
+import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
-import org.saturnine.api.UncommittedFileChange;
+import org.saturnine.api.Repository;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.disk.impl.DiskRepository;
 
@@ -23,26 +24,35 @@ public class StatusCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        DiskRepository repository = DiskRepository.find(new File("."));
-        for (UncommittedFileChange change : repository.status()) {
+        Repository repository = DiskRepository.find(new File("."));
+        for (FileChange change : repository.getWorkDirChanges(null)) {
             switch (change.getType()) {
                 case ADD:
-                    System.out.println((change.isApproved() ? "A   " : "?   ") + change.getResultState().getPath());
+                    printAdd(change.getPath(), repository);
                     break;
                 case MODIFY:
-                    System.out.println("M   " + change.getResultState().getPath());
-                    break;
-                case MOVE:
-                case MOVE_MODIFY:
-                    System.out.println("R   " + change.getOriginalState().getPath());
-                    System.out.println("A   " + change.getResultState().getPath());
+                    printModify(change.getPath(), repository);
                     break;
                 case REMOVE:
-                    System.out.println((change.isApproved() ? "R   " : "!   ") + change.getOriginalState().getPath());
+                    printRemove(change.getPath(), repository);
                     break;
                 default:
                     throw new PbException("Unknown change type " + change.getType());
             }
         }
+    }
+
+    private void printAdd(String path, Repository repository) throws PbException {
+        String code = repository.isAboutToAdd(path)? "A   " : "?   ";
+        System.out.println(code + path);
+    }
+
+    private void printModify(String path, Repository repository) throws PbException {
+        System.out.println("M   " + path);
+    }
+
+    private void printRemove(String path, Repository repository) throws PbException {
+        String code = repository.isAboutToRemove(path)? "R   " : "!   ";
+        System.out.println(code + path);
     }
 }
