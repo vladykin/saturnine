@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.saturnine.disk.impl;
 
 import java.io.BufferedReader;
@@ -12,16 +8,18 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.Changeset;
+import org.saturnine.api.FileChange;
 import org.saturnine.api.FileChangeType;
 import org.saturnine.api.FileState;
-import org.saturnine.api.UncommittedFileChange;
 import org.saturnine.util.Utils;
 
 /**
@@ -127,10 +125,12 @@ public class DiskRepository implements Repository {
         this.dir = dir;
     }
 
+    @Override
     public String getPath() {
         return dir.getAbsolutePath();
     }
 
+    @Override
     public String getParent() throws PbException {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(metadataFile(PARENT)));
@@ -149,6 +149,7 @@ public class DiskRepository implements Repository {
         return new File(dir, DOT_PB + "/" + name);
     }
 
+    @Override
     public String getCurrentID() throws PbException {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(metadataFile(CURRENT_ID)));
@@ -162,10 +163,12 @@ public class DiskRepository implements Repository {
         }
     }
 
+    @Override
     public String[] getHeadIDs() throws PbException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public Changeset getChangeset(String changesetID) throws PbException {
 
         if (Changeset.NULL_ID.equals(changesetID)) {
@@ -185,7 +188,7 @@ public class DiskRepository implements Repository {
                 String comment = reader.readLine();
                 String timestamp = reader.readLine();
                 if (parentID != null && author != null && comment != null && timestamp != null) {
-                    return new DiskChangeset(this, changesetID, Collections.singletonList(parentID), author, comment, Long.parseLong(timestamp));
+                    return new DiskChangeset(this, changesetID, Collections.singletonList(parentID), author, comment, new Date(Long.parseLong(timestamp)));
                 } else {
                     throw new PbException("Corrupted changeset file for " + changesetID);
                 }
@@ -197,20 +200,30 @@ public class DiskRepository implements Repository {
         }
     }
 
-    private List<UncommittedFileChange> readApprovedChanges() {
+    private List<FileChange> readApprovedChanges() {
         File approvedFile = metadataFile(APPROVED);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(approvedFile));
             try {
-                List<UncommittedFileChange> changes = new ArrayList<UncommittedFileChange>();
+                List<FileChange> changes = new ArrayList<FileChange>();
                 while (true) {
-                    String type = reader.readLine();
-                    if (type == null) {
+                    String typeStr = reader.readLine();
+                    if (typeStr == null) {
                         break;
                     }
-                    FileState orig = FileStateImpl.parse(reader.readLine());
-                    FileState result = FileStateImpl.parse(reader.readLine());
-                    changes.add(new FileChangeImpl(FileChangeType.valueOf(type), orig, result, true));
+                    FileChangeType type = FileChangeType.valueOf(typeStr);
+                    String path = reader.readLine();
+                    if (path == null) {
+                        break;
+                    }
+                    String copyOf = null;
+                    if (type == FileChangeType.ADD) {
+                        copyOf = reader.readLine();
+                        if ("<null>".equals(copyOf)) {
+                            copyOf = null;
+                        }
+                    }
+                    changes.add(new FileChangeImpl(path, type, copyOf));
                 }
                 return changes;
             } finally {
@@ -238,7 +251,7 @@ public class DiskRepository implements Repository {
             if (f.isDirectory()) {
                 collectFileStates(f, states);
             } else {
-                states.add(new FileStateImpl(Utils.relativePath(this.dir, f), f.length()));
+                states.add(new FileStateImpl(Utils.relativePath(this.dir, f), f.length(), new Date(0)));
             }
         }
     }
@@ -267,25 +280,24 @@ public class DiskRepository implements Repository {
         }
     }
 
-    private static List<FileState> removeRelated(UncommittedFileChange change, List<FileState> states) {
+    private static List<FileState> removeRelated(FileChange change, List<FileState> states) {
         List<FileState> result = new ArrayList<FileState>();
         for (FileState state : states) {
-            String origPath = change.getOriginalState() == null ? null : change.getOriginalState().getPath();
-            String resultPath = change.getResultState() == null ? null : change.getResultState().getPath();
-            if (state.getPath().equals(origPath) || state.getPath().equals(resultPath)) {
+            if (state.getPath().equals(change.getPath()) || state.getPath().equals(change.getCopyOf())) {
                 result.add(state);
             }
         }
         return result;
     }
 
-    public List<UncommittedFileChange> status() throws PbException {
-        List<UncommittedFileChange> changes = new ArrayList<UncommittedFileChange>(readApprovedChanges());
+    @Override
+    public List<FileChange> getWorkDirChanges(Collection<String> paths) throws PbException {
+        List<FileChange> changes = new ArrayList<FileChange>(readApprovedChanges());
 
         List<FileState> actualStates = readFileStatesFromDisk();
         List<FileState> expectedStates = readFileStatesFromMetadata();
 
-        for (UncommittedFileChange change : changes) {
+        for (FileChange change : changes) {
             removeRelated(change, actualStates);
             removeRelated(change, expectedStates);
         }
@@ -298,9 +310,9 @@ public class DiskRepository implements Repository {
         for (FileState actualState : actualStates) {
             FileState origState = statesMap.get(actualState.getPath());
             if (origState == null) {
-                changes.add(new FileChangeImpl(FileChangeType.ADD, null, actualState, true));
+                changes.add(new FileChangeImpl(actualState.getPath(), FileChangeType.ADD, null));
             } else if (!origState.equals(actualState)) {
-                changes.add(new FileChangeImpl(FileChangeType.MODIFY, origState, actualState, true));
+                changes.add(new FileChangeImpl(actualState.getPath(), FileChangeType.MODIFY, null));
             }
         }
 
@@ -313,27 +325,41 @@ public class DiskRepository implements Repository {
                 }
             }
             if (!found) {
-                changes.add(new FileChangeImpl(FileChangeType.REMOVE, entry.getValue(), null, true));
+                changes.add(new FileChangeImpl(entry.getValue().getPath(), FileChangeType.REMOVE, null));
             }
         }
 
         return changes;
     }
 
-    public void add(String path) throws PbException {
+    @Override
+    public boolean isAboutToAdd(String path) throws PbException {
+        return true;
+    }
+
+    @Override
+    public void add(Collection<String> paths) throws PbException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void move(String path) throws PbException {
+    @Override
+    public void move(String oldPath, String newPath) throws PbException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void remove(String path) throws PbException {
+    @Override
+    public boolean isAboutToRemove(String path) throws PbException {
+        return true;
+    }
+
+    @Override
+    public void remove(Collection<String> path) throws PbException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void commit(String author, String message) throws PbException {
-        List<UncommittedFileChange> changes = status();
+    @Override
+    public void commit(String author, String message, Collection<String> paths) throws PbException {
+        List<FileChange> changes = getWorkDirChanges(paths);
         DiskChangeset changeset = DiskChangeset.create(this, author, message, changes);
         try {
             FileWriter writer = new FileWriter(metadataFile(CURRENT_ID));
@@ -347,7 +373,7 @@ public class DiskRepository implements Repository {
         try {
             FileWriter writer = new FileWriter(metadataFile(STATES + "/" + changeset.getID()));
             for (FileState state : actualStates) {
-                writer.write(String.valueOf(state.getSize()) + " " + state.getPath() + "\n");
+                writer.write(String.valueOf(state.getSize()) + " " + String.valueOf(state.getTimeModified().getTime()) + " " + state.getPath() + "\n");
             }
             writer.close();
         } catch (IOException ex) {
@@ -355,13 +381,14 @@ public class DiskRepository implements Repository {
         }
     }
 
-    public void pull(DiskRepository parent) throws PbException {
+    @Override
+    public void pull(Repository parent) throws PbException {
 
-        if (!parent.status().isEmpty()) {
+        if (!parent.getWorkDirChanges(null).isEmpty()) {
             throw new PbException("Uncommitted changes in reporte repository");
         }
 
-        if (!status().isEmpty()) {
+        if (!getWorkDirChanges(null).isEmpty()) {
             throw new PbException("Uncommitted changes in local repository");
         }
 
@@ -374,7 +401,7 @@ public class DiskRepository implements Repository {
         if (this.getChangeset(parentHeadID) == null) {
             System.out.println("New changesets found, pulling");
             try {
-                Utils.copyFiles(parent.dir, dir);
+                Utils.copyFiles(new File(parent.getPath()), dir);
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }
@@ -390,10 +417,10 @@ public class DiskRepository implements Repository {
             }
 
 
-            List<UncommittedFileChange> changes = status();
-            for (UncommittedFileChange change : changes) {
+            List<FileChange> changes = getWorkDirChanges(null);
+            for (FileChange change : changes) {
                 if (change.getType() == FileChangeType.ADD) {
-                    new File(dir, change.getResultState().getPath()).delete();
+                    new File(dir, change.getPath()).delete();
                 }
             }
         } else {
@@ -401,12 +428,13 @@ public class DiskRepository implements Repository {
         }
     }
 
-    public void push(DiskRepository parent) throws PbException {
-        if (!parent.status().isEmpty()) {
-            throw new PbException("Uncommitted changes in reporte repository");
+    @Override
+    public void push(Repository parent) throws PbException {
+        if (!parent.getWorkDirChanges(null).isEmpty()) {
+            throw new PbException("Uncommitted changes in remote repository");
         }
 
-        if (!status().isEmpty()) {
+        if (!getWorkDirChanges(null).isEmpty()) {
             throw new PbException("Uncommitted changes in local repository");
         }
 
@@ -421,12 +449,12 @@ public class DiskRepository implements Repository {
         if (parent.getChangeset(thisHeadID) == null) {
             System.out.println("New changesets found, pushing");
             try {
-                Utils.copyFiles(dir, parent.dir);
+                Utils.copyFiles(dir, new File(parent.getPath()));
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }
 
-            File parentFile = parent.metadataFile(PARENT);
+            File parentFile = ((DiskRepository) parent).metadataFile(PARENT);
             try {
                 FileWriter writer = new FileWriter(parentFile);
                 writer.write(parentParent + "\n");
@@ -435,10 +463,10 @@ public class DiskRepository implements Repository {
                 throw new PbException("Failed to create " + parentFile);
             }
 
-            List<UncommittedFileChange> changes = parent.status();
-            for (UncommittedFileChange change : changes) {
+            List<FileChange> changes = parent.getWorkDirChanges(null);
+            for (FileChange change : changes) {
                 if (change.getType() == FileChangeType.ADD) {
-                    new File(parent.dir, change.getResultState().getPath()).delete();
+                    new File(parent.getPath(), change.getPath()).delete();
                 }
             }
         } else {

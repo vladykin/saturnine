@@ -1,19 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.api;
 
 /**
- *
  * @author Alexey Vladykin
  */
 public interface FileChange {
 
+    String getPath();
+
     FileChangeType getType();
 
-    FileState getOriginalState();
-
-    FileState getResultState();
+    String getCopyOf();
 }

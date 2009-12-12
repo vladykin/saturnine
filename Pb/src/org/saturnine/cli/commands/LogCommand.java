@@ -43,7 +43,7 @@ public class LogCommand implements PbCommand {
             System.out.println("timestamp: " + changeset.getTimestamp());
             System.out.println();
 
-            changesetID = changeset.getParentIDs().get(0);
+            changesetID = changeset.getParentIDs().iterator().next();
         }
     }
 }

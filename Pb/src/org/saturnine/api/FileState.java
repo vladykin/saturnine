@@ -1,9 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.api;
+
+import java.util.Date;
 
 /**
  *
@@ -15,7 +12,9 @@ public interface FileState {
 
     long getSize();
 
-    long getTimeModified();
+    int getMode();
+
+    Date getTimeModified();
 
     String getHash();
 }

@@ -1,14 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.api;
 
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
- *
  * @author Alexey Vladykin
  */
 public interface Changeset {
@@ -17,13 +13,13 @@ public interface Changeset {
 
     String getID();
 
-    List<String> getParentIDs();
+    Collection<String> getParentIDs();
 
     String getAuthor();
 
     String getComment();
 
-    long getTimestamp();
+    Date getTimestamp();
 
     List<FileChange> getFileChanges();
 }

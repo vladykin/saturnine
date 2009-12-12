@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.*;
 import org.saturnine.api.PbException;
-import org.saturnine.api.UncommittedFileChange;
+import org.saturnine.api.FileChange;
 import org.saturnine.disk.impl.DiskRepository;
 /**
  *
@@ -24,7 +24,7 @@ public final class FileChooserTree implements Runnable {
     public boolean isonefile;
     public String isonefilename;
     private DiskRepository repository;
-    private List<UncommittedFileChange> changes;
+    private List<FileChange> changes;
 
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -43,7 +43,7 @@ public final class FileChooserTree implements Runnable {
          yesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    repository.commit("Alexey", "Dummy message");
+                    repository.commit("Alexey", "Dummy message", null);
                     form.dispose();
                 } catch (PbException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -117,26 +117,20 @@ public final class FileChooserTree implements Runnable {
         form.setVisible(true);
     }
 
-    public void createTree(DiskRepository repository, List<UncommittedFileChange> changes) {
+    public void createTree(DiskRepository repository, List<FileChange> changes) {
         this.repository = repository;
         this.changes = changes;
         caption = "Choose files to be committed";
         isonefile = changes.size() == 1;
         if (isonefile) {
-            switch (changes.get(0).getType()) {
-                case REMOVE:
-                    isonefilename = changes.get(0).getOriginalState().getPath();
-                    break;
-                default:
-                    isonefilename = changes.get(0).getResultState().getPath();
-            }
+            isonefilename = changes.get(0).getPath();
         }
     }
 
     public static void main(String[] args) throws Exception {
 
         DiskRepository repository = DiskRepository.open(new File(args[0]));
-        List<UncommittedFileChange> changes = repository.status();
+        List<FileChange> changes = repository.getWorkDirChanges(null);
 
         FileChooserTree window = new FileChooserTree();
         window.createTree(repository, changes);

@@ -1,18 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.saturnine.disk.impl;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import org.saturnine.api.Changeset;
-import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
-import org.saturnine.api.UncommittedFileChange;
+import org.saturnine.api.FileChange;
 import org.saturnine.util.Utils;
 
 /**
@@ -26,7 +22,7 @@ import org.saturnine.util.Utils;
     private final List<String> parents;
     private final String author;
     private final String comment;
-    private final long timestamp;
+    private final Date timestamp;
 
     public DiskChangeset(DiskRepository repository) {
         this.repository = repository;
@@ -34,10 +30,10 @@ import org.saturnine.util.Utils;
         this.parents = Collections.emptyList();
         this.author = "";
         this.comment = "";
-        this.timestamp = 0;
+        this.timestamp = new Date(0);
     }
 
-    public DiskChangeset(DiskRepository repository, String id, List<String> parents, String author, String comment, long timestamp) throws PbException {
+    public DiskChangeset(DiskRepository repository, String id, List<String> parents, String author, String comment, Date timestamp) throws PbException {
         this.repository = repository;
         this.id = id;
         this.parents = Collections.unmodifiableList(Utils.packedListCopy(parents));
@@ -46,26 +42,32 @@ import org.saturnine.util.Utils;
         this.timestamp = timestamp;
     }
 
+    @Override
     public String getID() {
         return id;
     }
 
+    @Override
     public List<String> getParentIDs() {
         return parents;
     }
 
+    @Override
     public String getAuthor() {
         return author;
     }
 
+    @Override
     public String getComment() {
         return comment;
     }
 
-    public long getTimestamp() {
+    @Override
+    public Date getTimestamp() {
         return timestamp;
     }
 
+    @Override
     public List<FileChange> getFileChanges() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -73,20 +75,20 @@ import org.saturnine.util.Utils;
     public static DiskChangeset create(DiskRepository repository,
             String author,
             String comment,
-            List<? extends UncommittedFileChange> changes) throws PbException {
+            List<? extends FileChange> changes) throws PbException {
 
         String parentID = repository.getCurrentID();
         String changesetID = createID(repository, parentID, changes);
         DiskChangeset changeset = new DiskChangeset(
                 repository, changesetID, Collections.singletonList(parentID),
-                author, comment, System.currentTimeMillis());
+                author, comment, new Date());
 
         try {
             FileWriter writer = new FileWriter(repository.metadataFile(DiskRepository.CHANGESETS + "/" + changesetID));
             writer.write(parentID + "\n");
             writer.write(changeset.getAuthor() + "\n");
             writer.write(changeset.getComment() + "\n");
-            writer.write(changeset.getTimestamp() + "\n");
+            writer.write(changeset.getTimestamp().getTime() + "\n");
             writer.close();
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
@@ -95,7 +97,7 @@ import org.saturnine.util.Utils;
         return changeset;
     }
 
-    private static String createID(DiskRepository repository, String parentID, List<? extends UncommittedFileChange> changes) throws PbException {
+    private static String createID(DiskRepository repository, String parentID, List<? extends FileChange> changes) throws PbException {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] buf;
@@ -106,13 +108,12 @@ import org.saturnine.util.Utils;
             buf = parentID.getBytes("UTF-8");
             md.update(buf, 0, buf.length);
 
-            for (UncommittedFileChange change : changes) {
-                if (change.getOriginalState() != null) {
-                    buf = change.getOriginalState().getPath().getBytes("UTF-8");
-                    md.update(buf, 0, buf.length);
-                }
-                if (change.getResultState() != null) {
-                    buf = change.getResultState().getPath().getBytes("UTF-8");
+            for (FileChange change : changes) {
+                buf = change.getPath().getBytes("UTF-8");
+                md.update(buf, 0, buf.length);
+
+                if (change.getCopyOf() != null) {
+                    buf = change.getCopyOf().getBytes("UTF-8");
                     md.update(buf, 0, buf.length);
                 }
             }
