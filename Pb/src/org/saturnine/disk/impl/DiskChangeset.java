@@ -10,6 +10,7 @@ import org.saturnine.api.Changeset;
 import org.saturnine.api.DirState;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
+import org.saturnine.util.Hash;
 import org.saturnine.util.Utils;
 
 /**
@@ -101,26 +102,18 @@ import org.saturnine.util.Utils;
 
     private static String createID(DiskRepository repository, String parentID, List<? extends FileChange> changes) throws PbException {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] buf;
-
-            buf = repository.getURL().getBytes("UTF-8");
-            md.update(buf, 0, buf.length);
-
-            buf = parentID.getBytes("UTF-8");
-            md.update(buf, 0, buf.length);
+            Hash hash = Hash.createSHA1();
+            hash.update(repository.getURL());
+            hash.update(parentID);
 
             for (FileChange change : changes) {
-                buf = change.getPath().getBytes("UTF-8");
-                md.update(buf, 0, buf.length);
-
+                hash.update(change.getPath());
                 if (change.getCopyOf() != null) {
-                    buf = change.getCopyOf().getBytes("UTF-8");
-                    md.update(buf, 0, buf.length);
+                    hash.update(change.getCopyOf());
                 }
             }
 
-            return Utils.convertToHex(md.digest());
+            return hash.resultAsHex();
         } catch (Exception ex) {
             throw new PbException("Exception", ex);
         }
