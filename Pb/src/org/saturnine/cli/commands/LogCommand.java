@@ -24,7 +24,7 @@ public class LogCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.open(new File("."));
-        String changesetID = repository.getCurrentID();
+        String changesetID = repository.getHeadIDs().iterator().next();
         while (changesetID != null) {
             if (Changeset.NULL_ID.equals(changesetID)) {
                 break;

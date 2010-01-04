@@ -1,19 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.ui;
 
-import java.util.List;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import org.saturnine.api.DirState;
 import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
-import org.saturnine.disk.impl.DiskRepository;
 
 /**
  *
@@ -21,7 +16,7 @@ import org.saturnine.disk.impl.DiskRepository;
  */
 public final class TreeWindow implements Runnable {
     public String caption;
-    private DiskRepository repository;
+    private DirState dirstate;
     private JTree tree;
 
     public TreeWindow()  {
@@ -41,7 +36,7 @@ public final class TreeWindow implements Runnable {
          yesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    repository.commit("Alexey", "Dummy message", null);
+                    dirstate.commit("Alexey", "Dummy message", null);
                     form.dispose();
                 } catch (PbException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -87,10 +82,10 @@ public final class TreeWindow implements Runnable {
         form.setVisible(true);
     }
 
-    void buildtree(DiskRepository repository, List<FileChange> changes) {
+    void buildtree(DirState dirstate, Collection<FileChange> changes) {
         caption = "Check needed files";
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
-        root.setUserObject(repository.getPath());
+        root.setUserObject(dirstate.getRepository());
         for (FileChange change : changes) {
             String text = null;
             switch (change.getType()) {

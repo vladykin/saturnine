@@ -24,7 +24,7 @@ public class PullCommand implements PbCommand {
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.find(new File("."));
 
-        String parentPath = repository.getParent();
+        String parentPath = repository.getProperty(DiskRepository.PROP_PARENT);
         if (parentPath == null) {
             throw new PbException("No parent repository specified");
         }
