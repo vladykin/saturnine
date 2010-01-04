@@ -2,7 +2,6 @@ package org.saturnine.disk.impl;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -80,7 +79,7 @@ import org.saturnine.util.Utils;
             List<? extends FileChange> changes) throws PbException {
 
         DiskRepository repository = (DiskRepository) dirstate.getRepository();
-        String parentID = dirstate.getParentChangesetIDs().iterator().next();
+        String parentID = dirstate.getParentChangesetID();
         String changesetID = createID(repository, parentID, changes);
         DiskChangeset changeset = new DiskChangeset(
                 repository, changesetID, Collections.singletonList(parentID),

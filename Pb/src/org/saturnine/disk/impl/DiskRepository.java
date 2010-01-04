@@ -213,12 +213,12 @@ public class DiskRepository implements Repository {
             throw new PbException("Uncommitted changes in local repository");
         }
 
-        String thisHeadID = thisState.getParentChangesetIDs().iterator().next();
+        String thisHeadID = thisState.getParentChangesetID();
         if (parent.getChangeset(thisHeadID) == null) {
             throw new PbException("Local copy is newer than repository, can't pull");
         }
 
-        String parentHeadID = parentState.getParentChangesetIDs().iterator().next();
+        String parentHeadID = parentState.getParentChangesetID();
         if (this.getChangeset(parentHeadID) == null) {
             System.out.println("New changesets found, pulling");
             try {

@@ -39,7 +39,7 @@ public class DirStateImpl implements DirState {
     }
 
     @Override
-    public Collection<String> getParentChangesetIDs() {
+    public String getParentChangesetID() {
         String line;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(repository.metadataFile(DiskRepository.CURRENT_ID)));
@@ -51,9 +51,12 @@ public class DirStateImpl implements DirState {
         } catch (IOException ex) {
             line = null;
         }
-        return (line == null || line.length() == 0) ?
-            Collections.<String>emptyList() :
-            Collections.<String>singletonList(line);
+        return (line == null || line.length() == 0) ? Changeset.NULL_ID : line;
+    }
+
+    @Override
+    public String getSecondaryChangesetID() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -204,7 +207,7 @@ public class DirStateImpl implements DirState {
     }
 
     private List<FileState> readFileStatesFromMetadata() throws PbException {
-        String changesetID = getParentChangesetIDs().iterator().next();
+        String changesetID = getParentChangesetID();
         if (Changeset.NULL_ID.equals(changesetID)) {
             return Collections.emptyList();
         }

@@ -3,13 +3,24 @@ package org.saturnine.api;
 import java.util.Collection;
 
 /**
+ * State of repository checkout.
+ *
  * @author Alexey Vladykin
  */
 public interface DirState {
 
-    Repository getRepository();
+    /**
+     * @return id of primary parent changeset
+     */
+    String getParentChangesetID();
 
-    Collection<String> getParentChangesetIDs();
+    /**
+     * @return id of secondary parent changeset for merges,
+     *      or {@link Changeset#NULL_ID} for non-merges
+     */
+    String getSecondaryChangesetID();
+
+    Repository getRepository();
 
     Collection<FileChange> getWorkDirChanges(Collection<String> paths) throws PbException;
 
