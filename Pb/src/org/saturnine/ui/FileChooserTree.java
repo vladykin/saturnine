@@ -1,16 +1,19 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.saturnine.ui;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.util.List;
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.*;
+import java.util.Collection;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import org.saturnine.api.DirState;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
 import org.saturnine.disk.impl.DiskRepository;
@@ -23,8 +26,8 @@ public final class FileChooserTree implements Runnable {
     public String caption;
     public boolean isonefile;
     public String isonefilename;
-    private DiskRepository repository;
-    private List<FileChange> changes;
+    private DirState dirstate;
+    private Collection<FileChange> changes;
 
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -43,7 +46,7 @@ public final class FileChooserTree implements Runnable {
          yesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    repository.commit("Alexey", "Dummy message", null);
+                    dirstate.commit("Alexey", "Dummy message", null);
                     form.dispose();
                 } catch (PbException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -59,7 +62,7 @@ public final class FileChooserTree implements Runnable {
             public void actionPerformed(ActionEvent e) {                
                    TreeWindow OpenTree = new TreeWindow();
                    //TODO: dont forget to change input data
-                   OpenTree.buildtree(repository, changes);
+                   OpenTree.buildtree(dirstate, changes);
                    SwingUtilities.invokeLater(OpenTree);
                    //form.setVisible(false);
                    form.dispose();
@@ -117,23 +120,24 @@ public final class FileChooserTree implements Runnable {
         form.setVisible(true);
     }
 
-    public void createTree(DiskRepository repository, List<FileChange> changes) {
-        this.repository = repository;
+    public void createTree(DirState dirstate, Collection<FileChange> changes) {
+        this.dirstate = dirstate;
         this.changes = changes;
         caption = "Choose files to be committed";
         isonefile = changes.size() == 1;
         if (isonefile) {
-            isonefilename = changes.get(0).getPath();
+            isonefilename = changes.iterator().next().getPath();
         }
     }
 
     public static void main(String[] args) throws Exception {
 
         DiskRepository repository = DiskRepository.open(new File(args[0]));
-        List<FileChange> changes = repository.getWorkDirChanges(null);
+        DirState dirstate = repository.getDirState();
+        Collection<FileChange> changes = dirstate.getWorkDirChanges(null);
 
         FileChooserTree window = new FileChooserTree();
-        window.createTree(repository, changes);
+        window.createTree(dirstate, changes);
         SwingUtilities.invokeLater(window);
     }
 }

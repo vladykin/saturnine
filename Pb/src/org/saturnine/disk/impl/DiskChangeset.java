@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.saturnine.api.Changeset;
+import org.saturnine.api.DirState;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
 import org.saturnine.util.Utils;
@@ -72,12 +73,13 @@ import org.saturnine.util.Utils;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static DiskChangeset create(DiskRepository repository,
+    public static DiskChangeset create(DirState dirstate,
             String author,
             String comment,
             List<? extends FileChange> changes) throws PbException {
 
-        String parentID = repository.getCurrentID();
+        DiskRepository repository = (DiskRepository) dirstate.getRepository();
+        String parentID = dirstate.getParentChangesetIDs().iterator().next();
         String changesetID = createID(repository, parentID, changes);
         DiskChangeset changeset = new DiskChangeset(
                 repository, changesetID, Collections.singletonList(parentID),
@@ -102,7 +104,7 @@ import org.saturnine.util.Utils;
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] buf;
 
-            buf = repository.getPath().getBytes("UTF-8");
+            buf = repository.getURL().getBytes("UTF-8");
             md.update(buf, 0, buf.length);
 
             buf = parentID.getBytes("UTF-8");
