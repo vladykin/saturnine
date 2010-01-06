@@ -11,7 +11,7 @@ public interface Repository {
 
     String getProperty(String key);
 
-    DirState getDirState();
+    DirState getDirState() throws PbException;
 
     Collection<String> getHeadIDs() throws PbException;
 

@@ -1,7 +1,5 @@
 package org.saturnine.api;
 
-import java.util.Date;
-
 /**
  *
  * @author Alexey Vladykin
@@ -14,7 +12,7 @@ public interface FileState {
 
     int getMode();
 
-    Date getTimeModified();
+    long getLastModified();
 
     String getHash();
 }

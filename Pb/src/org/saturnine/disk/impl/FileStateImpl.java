@@ -1,6 +1,5 @@
 package org.saturnine.disk.impl;
 
-import java.util.Date;
 import org.saturnine.api.FileState;
 
 /**
@@ -10,17 +9,17 @@ public class FileStateImpl implements FileState {
 
     public static FileStateImpl parse(String line) {
         String[] split = line.split("\\s+", 3);
-        return new FileStateImpl(split[2], Long.parseLong(split[0]), new Date(Long.parseLong(split[1])));
+        return new FileStateImpl(split[2], Long.parseLong(split[0]), Long.parseLong(split[1]));
     }
 
     private final String path;
     private final long size;
-    private final Date timeModified;
+    private final long lastModified;
 
-    /*package*/ FileStateImpl(String path, long size, Date timeModified) {
+    /*package*/ FileStateImpl(String path, long size, long lastModified) {
         this.path = path;
         this.size = size;
-        this.timeModified = timeModified;
+        this.lastModified = lastModified;
     }
 
     @Override
@@ -39,8 +38,8 @@ public class FileStateImpl implements FileState {
     }
 
     @Override
-    public Date getTimeModified() {
-        return timeModified;
+    public long getLastModified() {
+        return lastModified;
     }
 
     @Override

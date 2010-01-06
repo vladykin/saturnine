@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,21 +49,11 @@ public class DiskRepository implements Repository {
                 throw new PbException("Failed to create " + metadataDir);
             }
 
-            File currentIdFile = new File(metadataDir, CURRENT_ID);
+            File pbrcFile = new File(metadataDir, PBRC);
             try {
-                currentIdFile.createNewFile();
-                FileWriter writer = new FileWriter(currentIdFile);
-                writer.write(Changeset.NULL_ID + "\n");
-                writer.close();
+                pbrcFile.createNewFile();
             } catch (IOException ex) {
-                throw new PbException("Failed to create " + currentIdFile);
-            }
-
-            File parentFile = new File(metadataDir, PBRC);
-            try {
-                parentFile.createNewFile();
-            } catch (IOException ex) {
-                throw new PbException("Failed to create " + parentFile);
+                throw new PbException("Failed to create " + pbrcFile);
             }
 
             File changesetsDir = new File(metadataDir, CHANGESETS);
@@ -74,6 +64,12 @@ public class DiskRepository implements Repository {
             File statesDir = new File(metadataDir, STATES);
             if (!statesDir.mkdir()) {
                 throw new PbException("Failed to create " + statesDir);
+            }
+
+            try {
+                DirStateImpl.init(metadataDir, Changeset.NULL_ID, Changeset.NULL_ID);
+            } catch (IOException ex) {
+                throw new PbException("Failed to initialize dirstate", ex);
             }
 
             return new DiskRepository(dir);
@@ -160,8 +156,12 @@ public class DiskRepository implements Repository {
     }
 
     @Override
-    public DirState getDirState() {
-        return new DirStateImpl(this);
+    public DirState getDirState() throws PbException {
+        try {
+            return DirStateImpl.read(this);
+        } catch (IOException ex) {
+            throw new PbException("Failed to read dirstate", ex);
+        }
     }
 
     @Override
@@ -235,6 +235,13 @@ public class DiskRepository implements Repository {
             }
         } else {
             System.out.println("Nothing to pull");
+        }
+    }
+
+    /*package*/ static class PbFileFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File dir, String name) {
+            return !DiskRepository.DOT_PB.equals(name);
         }
     }
 }
