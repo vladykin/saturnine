@@ -37,7 +37,7 @@ import org.saturnine.util.Utils;
     public DiskChangeset(DiskRepository repository, String id, List<String> parents, String author, String comment, Date timestamp) throws PbException {
         this.repository = repository;
         this.id = id;
-        this.parents = Collections.unmodifiableList(Utils.packedListCopy(parents));
+        this.parents = Utils.immutableListCopy(parents);
         this.author = author;
         this.comment = comment;
         this.timestamp = timestamp;
