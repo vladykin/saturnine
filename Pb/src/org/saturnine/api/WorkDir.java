@@ -7,7 +7,7 @@ import java.util.Collection;
  *
  * @author Alexey Vladykin
  */
-public interface DirState {
+public interface WorkDir {
 
     /**
      * @return id of primary parent changeset

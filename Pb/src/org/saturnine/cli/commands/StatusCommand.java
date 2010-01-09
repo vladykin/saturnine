@@ -1,7 +1,7 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
@@ -26,7 +26,7 @@ public class StatusCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         Repository repository = DiskRepository.find(new File("."));
-        DirState dirstate = repository.getDirState();
+        WorkDir dirstate = repository.getDirState();
         for (FileChange change : dirstate.getWorkDirChanges(null)) {
             switch (change.getType()) {
                 case ADD:
@@ -44,16 +44,16 @@ public class StatusCommand implements PbCommand {
         }
     }
 
-    private void printAdd(String path, DirState dirstate) throws PbException {
+    private void printAdd(String path, WorkDir dirstate) throws PbException {
         String code = dirstate.isAboutToAdd(path)? "A   " : "?   ";
         System.out.println(code + path);
     }
 
-    private void printModify(String path, DirState dirstate) throws PbException {
+    private void printModify(String path, WorkDir dirstate) throws PbException {
         System.out.println("M   " + path);
     }
 
-    private void printRemove(String path, DirState dirstate) throws PbException {
+    private void printRemove(String path, WorkDir dirstate) throws PbException {
         String code = dirstate.isAboutToRemove(path)? "R   " : "!   ";
         System.out.println(code + path);
     }

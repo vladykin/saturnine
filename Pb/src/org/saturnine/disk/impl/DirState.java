@@ -17,10 +17,10 @@ import org.saturnine.util.Utils;
 /**
  * @author Alexey Vladykin
  */
-public final class DirStateImpl2 {
+public final class DirState {
 
     @SuppressWarnings("unchecked")
-    public static DirStateImpl2 read(File dirstate, File basedir) throws IOException {
+    public static DirState read(File dirstate, File basedir) throws IOException {
         Map<String, FileState> knownFileStates;
         Set<String> addedFiles;
         Set<String> removedFiles;
@@ -38,11 +38,11 @@ public final class DirStateImpl2 {
             ois.close();
         }
 
-        return new DirStateImpl2(dirstate, basedir, knownFileStates, addedFiles, removedFiles, copyOf);
+        return new DirState(dirstate, basedir, knownFileStates, addedFiles, removedFiles, copyOf);
     }
 
-    public static DirStateImpl2 create(File dirstate, File basedir, Map<String, FileState> knownFileStates) {
-        return new DirStateImpl2(dirstate, basedir, knownFileStates,
+    public static DirState create(File dirstate, File basedir, Map<String, FileState> knownFileStates) {
+        return new DirState(dirstate, basedir, knownFileStates,
                 new HashSet<String>(), new HashSet<String>(),
                 new HashMap<String, String>());
     }
@@ -54,7 +54,7 @@ public final class DirStateImpl2 {
     private final Set<String> removedFiles;
     private final Map<String, String> copyOf;
 
-    private DirStateImpl2(File dirstate, File basedir,
+    private DirState(File dirstate, File basedir,
             Map<String, FileState> knownFileStates,
             Set<String> addedFiles, Set<String> removedFiles,
             Map<String, String> copyOf) {

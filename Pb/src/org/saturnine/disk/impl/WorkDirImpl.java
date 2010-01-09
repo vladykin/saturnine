@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.FileChange;
 import org.saturnine.api.FileChangeType;
 import org.saturnine.api.FileState;
@@ -21,7 +21,7 @@ import org.saturnine.util.Utils;
 /**
  * @author Alexey Vladykin
  */
-public final class DirStateImpl implements DirState {
+public final class WorkDirImpl implements WorkDir {
 
     private static final String DIRSTATE = "dirstate";
     private static final char NEWLINE = '\n';
@@ -50,7 +50,7 @@ public final class DirStateImpl implements DirState {
         }
     }
 
-    /*package*/ static DirStateImpl read(DiskRepository repository) throws IOException {
+    /*package*/ static WorkDirImpl read(DiskRepository repository) throws IOException {
         File dirstateFile = repository.metadataFile(DIRSTATE);
         BufferedReader dirstateReader = new BufferedReader(new FileReader(dirstateFile));
         try {
@@ -88,7 +88,7 @@ public final class DirStateImpl implements DirState {
                 fileChanges.add(new FileChangeImpl(path, type, copyOf));
             }
 
-            return new DirStateImpl(repository,
+            return new WorkDirImpl(repository,
                     primaryChangeset, secondaryChangeset,
                     fileStates, fileChanges);
         } finally {
@@ -102,7 +102,7 @@ public final class DirStateImpl implements DirState {
     private final List<FileState> fileStates;
     private final List<FileChange> fileChanges;
 
-    private DirStateImpl(DiskRepository repository,
+    private WorkDirImpl(DiskRepository repository,
             String primaryChangeset, String secondaryChangeset,
             List<FileState> fileStates, List<FileChange> fileChanges) {
         this.repository = repository;
