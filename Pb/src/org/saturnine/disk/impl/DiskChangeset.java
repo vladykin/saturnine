@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.saturnine.api.Changeset;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
 import org.saturnine.util.Hash;
@@ -73,7 +73,7 @@ import org.saturnine.util.Utils;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static DiskChangeset create(DirState dirstate,
+    public static DiskChangeset create(WorkDir dirstate,
             String author,
             String comment,
             List<? extends FileChange> changes) throws PbException {

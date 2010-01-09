@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.Collection;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
 
@@ -16,7 +16,7 @@ import org.saturnine.api.PbException;
  */
 public final class TreeWindow implements Runnable {
     public String caption;
-    private DirState dirstate;
+    private WorkDir dirstate;
     private JTree tree;
 
     public TreeWindow()  {
@@ -82,7 +82,7 @@ public final class TreeWindow implements Runnable {
         form.setVisible(true);
     }
 
-    void buildtree(DirState dirstate, Collection<FileChange> changes) {
+    void buildtree(WorkDir dirstate, Collection<FileChange> changes) {
         caption = "Check needed files";
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
         root.setUserObject(dirstate.getRepository());

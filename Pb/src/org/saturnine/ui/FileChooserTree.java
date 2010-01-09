@@ -13,7 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
 import org.saturnine.disk.impl.DiskRepository;
@@ -26,7 +26,7 @@ public final class FileChooserTree implements Runnable {
     public String caption;
     public boolean isonefile;
     public String isonefilename;
-    private DirState dirstate;
+    private WorkDir dirstate;
     private Collection<FileChange> changes;
 
     public void run() {
@@ -120,7 +120,7 @@ public final class FileChooserTree implements Runnable {
         form.setVisible(true);
     }
 
-    public void createTree(DirState dirstate, Collection<FileChange> changes) {
+    public void createTree(WorkDir dirstate, Collection<FileChange> changes) {
         this.dirstate = dirstate;
         this.changes = changes;
         caption = "Choose files to be committed";
@@ -133,7 +133,7 @@ public final class FileChooserTree implements Runnable {
     public static void main(String[] args) throws Exception {
 
         DiskRepository repository = DiskRepository.open(new File(args[0]));
-        DirState dirstate = repository.getDirState();
+        WorkDir dirstate = repository.getDirState();
         Collection<FileChange> changes = dirstate.getWorkDirChanges(null);
 
         FileChooserTree window = new FileChooserTree();

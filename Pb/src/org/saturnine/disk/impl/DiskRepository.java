@@ -14,7 +14,7 @@ import java.util.Properties;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.Changeset;
-import org.saturnine.api.DirState;
+import org.saturnine.api.WorkDir;
 import org.saturnine.api.FileChange;
 import org.saturnine.api.FileChangeType;
 import org.saturnine.util.Utils;
@@ -67,7 +67,7 @@ public class DiskRepository implements Repository {
             }
 
             try {
-                DirStateImpl.init(metadataDir, Changeset.NULL_ID, Changeset.NULL_ID);
+                WorkDirImpl.init(metadataDir, Changeset.NULL_ID, Changeset.NULL_ID);
             } catch (IOException ex) {
                 throw new PbException("Failed to initialize dirstate", ex);
             }
@@ -156,9 +156,9 @@ public class DiskRepository implements Repository {
     }
 
     @Override
-    public DirState getDirState() throws PbException {
+    public WorkDir getDirState() throws PbException {
         try {
-            return DirStateImpl.read(this);
+            return WorkDirImpl.read(this);
         } catch (IOException ex) {
             throw new PbException("Failed to read dirstate", ex);
         }
@@ -203,12 +203,12 @@ public class DiskRepository implements Repository {
             throw new PbException("Only DiskRepository is supported");
         }
 
-        DirState parentState = parent.getDirState();
+        WorkDir parentState = parent.getDirState();
         if (!parentState.getWorkDirChanges(null).isEmpty()) {
             throw new PbException("Uncommitted changes in reporte repository");
         }
 
-        DirState thisState = getDirState();
+        WorkDir thisState = getDirState();
         if (!thisState.getWorkDirChanges(null).isEmpty()) {
             throw new PbException("Uncommitted changes in local repository");
         }
