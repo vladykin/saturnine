@@ -4,7 +4,7 @@ import java.io.File;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
-import org.saturnine.disk.impl.DiskRepository;
+import org.saturnine.local.LocalRepository;
 
 /**
  * @author Alexey Vladykin
@@ -23,7 +23,7 @@ public class LogCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        DiskRepository repository = DiskRepository.open(new File("."));
+        LocalRepository repository = LocalRepository.open(new File("."));
         String changesetID = repository.getHeads().iterator().next().getID();
         while (changesetID != null) {
             if (Changeset.NULL_ID.equals(changesetID)) {

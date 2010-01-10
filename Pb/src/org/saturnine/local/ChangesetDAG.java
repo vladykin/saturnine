@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +15,7 @@ import org.saturnine.api.Changeset;
  *
  * @author Alexey Vladykin
  */
-public final class ChangesetDAG {
+/*package*/ final class ChangesetDAG {
 
     @SuppressWarnings("unchecked")
     public static ChangesetDAG read(File file) throws IOException {

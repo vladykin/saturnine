@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.io.File;
 import java.util.Collections;

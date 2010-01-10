@@ -1,11 +1,11 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import org.saturnine.api.FileState;
 
 /**
  * @author Alexey Vladykin
  */
-public class FileStateImpl implements FileState {
+/*package*/ class FileStateImpl implements FileState {
 
     public static FileStateImpl parse(String line) {
         String[] split = line.split("\\s+", 3);

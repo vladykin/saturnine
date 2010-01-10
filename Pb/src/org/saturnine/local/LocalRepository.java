@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +17,7 @@ import org.saturnine.util.Utils;
  *
  * @author Alexey Vladykin
  */
-public class DiskRepository implements Repository {
+public class LocalRepository implements Repository {
 
     /*package*/ static final String DOT_PB = ".pb";
     /*package*/ static final String CHANGESETS = "changesets";
@@ -29,7 +29,7 @@ public class DiskRepository implements Repository {
      */
     public static final String PROP_PARENT = "parent";
 
-    public static DiskRepository create(File dir) throws PbException {
+    public static LocalRepository create(File dir) throws PbException {
         String[] content = dir.list();
         if (content == null) {
             throw new PbException("Failed to open directory " + dir);
@@ -61,11 +61,11 @@ public class DiskRepository implements Repository {
                 throw new PbException("Failed to create " + statesDir);
             }
 
-            return new DiskRepository(dir);
+            return new LocalRepository(dir);
         }
     }
 
-    public static DiskRepository createClone(DiskRepository parent, File dir) throws PbException {
+    public static LocalRepository createClone(LocalRepository parent, File dir) throws PbException {
         if (dir.exists()) {
             throw new PbException(dir + " already exists");
         }
@@ -93,17 +93,17 @@ public class DiskRepository implements Repository {
             throw new PbException("Failed to create " + pbrcFile);
         }
 
-        return new DiskRepository(dir);
+        return new LocalRepository(dir);
     }
 
-    public static DiskRepository open(File dir) throws PbException {
-        return new DiskRepository(dir);
+    public static LocalRepository open(File dir) throws PbException {
+        return new LocalRepository(dir);
     }
 
-    public static DiskRepository find(File dir) throws PbException {
+    public static LocalRepository find(File dir) throws PbException {
         while (dir != null) {
             if (new File(dir, DOT_PB).exists()) {
-                return DiskRepository.open(dir);
+                return LocalRepository.open(dir);
             }
             dir = dir.getParentFile();
         }
@@ -114,7 +114,7 @@ public class DiskRepository implements Repository {
     private WorkDir workdir;
     private ChangesetDAG changesetDAG;
 
-    private DiskRepository(File dir) {
+    private LocalRepository(File dir) {
         this.dir = dir;
     }
 
@@ -179,7 +179,7 @@ public class DiskRepository implements Repository {
     /*package*/ static class PbFileFilter implements FilenameFilter {
         @Override
         public boolean accept(File dir, String name) {
-            return !DiskRepository.DOT_PB.equals(name);
+            return !DOT_PB.equals(name);
         }
     }
 }

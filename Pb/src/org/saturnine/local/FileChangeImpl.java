@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import org.saturnine.api.FileChangeType;
 import org.saturnine.api.FileChange;
@@ -6,7 +6,7 @@ import org.saturnine.api.FileChange;
 /**
  * @author Alexey Vladykin
  */
-public class FileChangeImpl implements FileChange {
+/*package*/ class FileChangeImpl implements FileChange {
 
     private final String path;
     private final FileChangeType type;
