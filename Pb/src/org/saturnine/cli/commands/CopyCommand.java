@@ -1,7 +1,6 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
-import java.util.Arrays;
 import org.saturnine.api.PbException;
 import org.saturnine.api.WorkDir;
 import org.saturnine.cli.PbCommand;
@@ -10,22 +9,22 @@ import org.saturnine.disk.impl.DiskRepository;
 /**
  * @author Alexey Vladykin
  */
-public class RemoveCommand implements PbCommand {
+public class CopyCommand implements PbCommand {
 
     @Override
     public String getName() {
-        return "remove";
+        return "copy";
     }
 
     @Override
     public String getDescription() {
-        return "remove a file";
+        return "copy a file";
     }
 
     @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.find(new File("."));
         WorkDir workDir = repository.getWorkDir();
-        workDir.remove(Arrays.asList(args));
+        workDir.copy(args[0], args[1]);
     }
 }
