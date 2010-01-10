@@ -24,7 +24,7 @@ public class LogCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.open(new File("."));
-        String changesetID = repository.getHeadIDs().iterator().next();
+        String changesetID = repository.getHeads().iterator().next().getID();
         while (changesetID != null) {
             if (Changeset.NULL_ID.equals(changesetID)) {
                 break;
@@ -35,15 +35,18 @@ public class LogCommand implements PbCommand {
                 throw new PbException("Unable to find changeset " + changesetID);
             }
             System.out.println("changeset: " + changeset.getID());
-            for (String parentID : changeset.getParentIDs()) {
-                System.out.println("parent: " + parentID);
+            if (!changeset.getPrimaryParentID().equals(Changeset.NULL_ID)) {
+                System.out.println("parent: " + changeset.getPrimaryParentID());
+            }
+            if (!changeset.getSecondaryParentID().equals(Changeset.NULL_ID)) {
+                System.out.println("parent: " + changeset.getSecondaryParentID());
             }
             System.out.println("author: " + changeset.getAuthor());
             System.out.println("comment: " + changeset.getComment());
             System.out.println("timestamp: " + changeset.getTimestamp());
             System.out.println();
 
-            changesetID = changeset.getParentIDs().iterator().next();
+            changesetID = changeset.getPrimaryParentID();
         }
     }
 }

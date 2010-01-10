@@ -13,7 +13,7 @@ public interface Repository {
 
     WorkDir getWorkDir() throws PbException;
 
-    Collection<String> getHeadIDs() throws PbException;
+    Collection<Changeset> getHeads() throws PbException;
 
     Changeset getChangeset(String id) throws PbException;
 

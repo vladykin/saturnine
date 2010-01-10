@@ -1,7 +1,11 @@
 package org.saturnine.cli.commands;
 
+import java.io.File;
+import java.util.Collections;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.api.PbException;
+import org.saturnine.api.WorkDir;
+import org.saturnine.disk.impl.DiskRepository;
 
 /**
  * @author Alexey Vladykin
@@ -20,6 +24,8 @@ public class AddCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        throw new PbException("Not supported yet.");
+        DiskRepository repository = DiskRepository.find(new File("."));
+        WorkDir workDir = repository.getWorkDir();
+        workDir.add(Collections.singleton(args[0]));
     }
 }
