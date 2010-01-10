@@ -24,6 +24,7 @@ public class PbCommandProvider {
                 new StatusCommand(),
                 new AddCommand(),
                 new RemoveCommand(),
+                new CopyCommand(),
                 new MoveCommand(),
                 new CommitCommand(),
                 new LogCommand(),

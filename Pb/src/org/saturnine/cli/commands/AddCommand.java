@@ -1,6 +1,7 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.api.PbException;
@@ -26,6 +27,6 @@ public class AddCommand implements PbCommand {
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.find(new File("."));
         WorkDir workDir = repository.getWorkDir();
-        workDir.add(Collections.singleton(args[0]));
+        workDir.add(Arrays.asList(args));
     }
 }
