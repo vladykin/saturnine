@@ -1,6 +1,5 @@
 package org.saturnine.api;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +12,9 @@ public interface Changeset {
 
     String getID();
 
-    Collection<String> getParentIDs();
+    String getPrimaryParentID();
+
+    String getSecondaryParentID();
 
     String getAuthor();
 

@@ -1,15 +1,11 @@
 package org.saturnine.disk.impl;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Properties;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
@@ -52,9 +48,12 @@ public class DiskRepository implements Repository {
                 throw new PbException("Failed to create " + pbrcFile);
             }
 
-            File changesetsDir = new File(metadataDir, CHANGESETS);
-            if (!changesetsDir.mkdir()) {
-                throw new PbException("Failed to create " + changesetsDir);
+            File changesetsFile = new File(metadataDir, CHANGESETS);
+            ChangesetDAG changesets = ChangesetDAG.create(changesetsFile);
+            try {
+                changesets.write();
+            } catch (IOException ex) {
+                throw new PbException("Failed to write changesets", ex);
             }
 
             File statesDir = new File(metadataDir, STATES);
@@ -113,6 +112,7 @@ public class DiskRepository implements Repository {
 
     private final File dir;
     private WorkDir workdir;
+    private ChangesetDAG changesetDAG;
 
     private DiskRepository(File dir) {
         this.dir = dir;
@@ -143,11 +143,6 @@ public class DiskRepository implements Repository {
     }
 
     @Override
-    public Collection<String> getHeadIDs() throws PbException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public WorkDir getWorkDir() throws PbException {
         if (workdir == null) {
             workdir = WorkDirImpl.create(this);
@@ -155,36 +150,25 @@ public class DiskRepository implements Repository {
         return workdir;
     }
 
+    private ChangesetDAG getChangesetDAG() throws PbException {
+        if (changesetDAG == null) {
+            try {
+                changesetDAG = ChangesetDAG.read(metadataFile(CHANGESETS));
+            } catch (IOException ex) {
+                throw new PbException("Failed to read changesets", ex);
+            }
+        }
+        return changesetDAG;
+    }
+
+    @Override
+    public Collection<Changeset> getHeads() throws PbException {
+        return getChangesetDAG().getHeads();
+    }
+
     @Override
     public Changeset getChangeset(String changesetID) throws PbException {
-
-        if (Changeset.NULL_ID.equals(changesetID)) {
-            return new DiskChangeset(this);
-        }
-
-        File changesetFile = metadataFile(CHANGESETS + "/" + changesetID);
-        if (!changesetFile.exists()) {
-            return null;
-        }
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(changesetFile));
-            try {
-                String parentID = reader.readLine();
-                String author = reader.readLine();
-                String comment = reader.readLine();
-                String timestamp = reader.readLine();
-                if (parentID != null && author != null && comment != null && timestamp != null) {
-                    return new DiskChangeset(this, changesetID, Collections.singletonList(parentID), author, comment, new Date(Long.parseLong(timestamp)));
-                } else {
-                    throw new PbException("Corrupted changeset file for " + changesetID);
-                }
-            } finally {
-                reader.close();
-            }
-        } catch (IOException ex) {
-            throw new PbException("IOException", ex);
-        }
+        return getChangesetDAG().getChangeset(changesetID);
     }
 
     @Override

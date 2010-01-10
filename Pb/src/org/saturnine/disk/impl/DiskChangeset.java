@@ -2,7 +2,6 @@ package org.saturnine.disk.impl;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.saturnine.api.Changeset;
@@ -10,7 +9,6 @@ import org.saturnine.api.WorkDir;
 import org.saturnine.api.PbException;
 import org.saturnine.api.FileChange;
 import org.saturnine.util.Hash;
-import org.saturnine.util.Utils;
 
 /**
  *
@@ -20,7 +18,8 @@ import org.saturnine.util.Utils;
 
     private final DiskRepository repository;
     private final String id;
-    private final List<String> parents;
+    private final String primaryParent;
+    private final String secondaryParent;
     private final String author;
     private final String comment;
     private final Date timestamp;
@@ -28,16 +27,18 @@ import org.saturnine.util.Utils;
     public DiskChangeset(DiskRepository repository) {
         this.repository = repository;
         this.id = Changeset.NULL_ID;
-        this.parents = Collections.emptyList();
+        this.primaryParent = Changeset.NULL_ID;
+        this.secondaryParent = Changeset.NULL_ID;
         this.author = "";
         this.comment = "";
         this.timestamp = new Date(0);
     }
 
-    public DiskChangeset(DiskRepository repository, String id, List<String> parents, String author, String comment, Date timestamp) throws PbException {
+    public DiskChangeset(DiskRepository repository, String id, String primaryParent, String secondaryParent, String author, String comment, Date timestamp) throws PbException {
         this.repository = repository;
         this.id = id;
-        this.parents = Utils.immutableListCopy(parents);
+        this.primaryParent = primaryParent;
+        this.secondaryParent = secondaryParent;
         this.author = author;
         this.comment = comment;
         this.timestamp = timestamp;
@@ -48,9 +49,12 @@ import org.saturnine.util.Utils;
         return id;
     }
 
-    @Override
-    public List<String> getParentIDs() {
-        return parents;
+    public String getPrimaryParentID() {
+        return primaryParent;
+    }
+
+    public String getSecondaryParentID() {
+        return secondaryParent;
     }
 
     @Override
@@ -82,7 +86,7 @@ import org.saturnine.util.Utils;
         String parentID = dirstate.getParentChangesetID();
         String changesetID = createID(repository, parentID, changes);
         DiskChangeset changeset = new DiskChangeset(
-                repository, changesetID, Collections.singletonList(parentID),
+                repository, changesetID, parentID, Changeset.NULL_ID,
                 author, comment, new Date());
 
         try {

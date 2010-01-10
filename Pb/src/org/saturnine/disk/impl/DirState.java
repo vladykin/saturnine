@@ -140,6 +140,8 @@ public final class DirState {
     public void write() throws IOException {
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dirstate));
         try {
+            oos.writeUTF(primaryParent);
+            oos.writeUTF(secondaryParent);
             oos.writeObject(knownFileStates);
             oos.writeObject(addedFiles);
             oos.writeObject(removedFiles);
