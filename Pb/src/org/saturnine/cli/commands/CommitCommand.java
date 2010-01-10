@@ -23,6 +23,6 @@ public class CommitCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         DiskRepository repository = DiskRepository.find(new File("."));
-        repository.getDirState().commit("Alexey", args[0], null);
+        repository.getWorkDir().commit("Alexey", args[0], null);
     }
 }

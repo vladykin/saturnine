@@ -22,15 +22,13 @@ public interface WorkDir {
 
     Repository getRepository();
 
-    Collection<FileChange> getWorkDirChanges(Collection<String> paths) throws PbException;
-
-    boolean isAboutToAdd(String path) throws PbException;
+    WorkDirState scanForChanges(Collection<String> paths) throws PbException;
 
     void add(Collection<String> paths) throws PbException;
 
-    boolean isAboutToRemove(String path) throws PbException;
-
     void remove(Collection<String> paths) throws PbException;
+
+    void copy(String oldPath, String newPath) throws PbException;
 
     void move(String oldPath, String newPath) throws PbException;
 

@@ -1,10 +1,9 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
-import org.saturnine.api.WorkDir;
-import org.saturnine.api.FileChange;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
+import org.saturnine.api.WorkDirState;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.disk.impl.DiskRepository;
 
@@ -26,35 +25,24 @@ public class StatusCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         Repository repository = DiskRepository.find(new File("."));
-        WorkDir dirstate = repository.getDirState();
-        for (FileChange change : dirstate.getWorkDirChanges(null)) {
-            switch (change.getType()) {
-                case ADD:
-                    printAdd(change.getPath(), dirstate);
-                    break;
-                case MODIFY:
-                    printModify(change.getPath(), dirstate);
-                    break;
-                case REMOVE:
-                    printRemove(change.getPath(), dirstate);
-                    break;
-                default:
-                    throw new PbException("Unknown change type " + change.getType());
-            }
+        WorkDirState workDirState = repository.getWorkDir().scanForChanges(null);
+        for (String path : workDirState.getAddedFiles()) {
+            System.out.println("A " + path);
         }
-    }
-
-    private void printAdd(String path, WorkDir dirstate) throws PbException {
-        String code = dirstate.isAboutToAdd(path)? "A   " : "?   ";
-        System.out.println(code + path);
-    }
-
-    private void printModify(String path, WorkDir dirstate) throws PbException {
-        System.out.println("M   " + path);
-    }
-
-    private void printRemove(String path, WorkDir dirstate) throws PbException {
-        String code = dirstate.isAboutToRemove(path)? "R   " : "!   ";
-        System.out.println(code + path);
+        for (String path : workDirState.getRemovedFiles()) {
+            System.out.println("R " + path);
+        }
+        for (String path : workDirState.getMissingFiles()) {
+            System.out.println("! " + path);
+        }
+        for (String path : workDirState.getUntrackedFiles()) {
+            System.out.println("? " + path);
+        }
+        for (String path : workDirState.getModifiedFiles()) {
+            System.out.println("M " + path);
+        }
+        for (String path : workDirState.getUncertainFiles()) {
+            System.out.println("M " + path);
+        }
     }
 }

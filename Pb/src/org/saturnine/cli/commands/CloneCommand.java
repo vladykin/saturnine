@@ -23,7 +23,7 @@ public class CloneCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         DiskRepository source = DiskRepository.open(new File(args[0]));
-        if (!source.getDirState().getWorkDirChanges(null).isEmpty()) {
+        if (!source.getWorkDir().scanForChanges(null).isClean()) {
             throw new PbException("Uncommitted changes in source repository");
         }
 

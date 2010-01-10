@@ -15,8 +15,6 @@ import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.WorkDir;
-import org.saturnine.api.FileChange;
-import org.saturnine.api.FileChangeType;
 import org.saturnine.util.Utils;
 
 /**
@@ -26,10 +24,8 @@ import org.saturnine.util.Utils;
 public class DiskRepository implements Repository {
 
     /*package*/ static final String DOT_PB = ".pb";
-    /*package*/ static final String CURRENT_ID = "current_id";
     /*package*/ static final String CHANGESETS = "changesets";
     /*package*/ static final String STATES = "states";
-    /*package*/ static final String APPROVED = "approved";
     private static final String PBRC = "pbrc";
 
     /**
@@ -64,12 +60,6 @@ public class DiskRepository implements Repository {
             File statesDir = new File(metadataDir, STATES);
             if (!statesDir.mkdir()) {
                 throw new PbException("Failed to create " + statesDir);
-            }
-
-            try {
-                WorkDirImpl.init(metadataDir, Changeset.NULL_ID, Changeset.NULL_ID);
-            } catch (IOException ex) {
-                throw new PbException("Failed to initialize dirstate", ex);
             }
 
             return new DiskRepository(dir);
@@ -120,7 +110,9 @@ public class DiskRepository implements Repository {
         }
         throw new PbException("No repository found");
     }
+
     private final File dir;
+    private WorkDir workdir;
 
     private DiskRepository(File dir) {
         this.dir = dir;
@@ -156,12 +148,11 @@ public class DiskRepository implements Repository {
     }
 
     @Override
-    public WorkDir getDirState() throws PbException {
-        try {
-            return WorkDirImpl.read(this);
-        } catch (IOException ex) {
-            throw new PbException("Failed to read dirstate", ex);
+    public WorkDir getWorkDir() throws PbException {
+        if (workdir == null) {
+            workdir = WorkDirImpl.create(this);
         }
+        return workdir;
     }
 
     @Override
@@ -198,44 +189,7 @@ public class DiskRepository implements Repository {
 
     @Override
     public void pull(Repository parent) throws PbException {
-
-        if (!(parent instanceof DiskRepository)) {
-            throw new PbException("Only DiskRepository is supported");
-        }
-
-        WorkDir parentState = parent.getDirState();
-        if (!parentState.getWorkDirChanges(null).isEmpty()) {
-            throw new PbException("Uncommitted changes in reporte repository");
-        }
-
-        WorkDir thisState = getDirState();
-        if (!thisState.getWorkDirChanges(null).isEmpty()) {
-            throw new PbException("Uncommitted changes in local repository");
-        }
-
-        String thisHeadID = thisState.getParentChangesetID();
-        if (parent.getChangeset(thisHeadID) == null) {
-            throw new PbException("Local copy is newer than repository, can't pull");
-        }
-
-        String parentHeadID = parentState.getParentChangesetID();
-        if (this.getChangeset(parentHeadID) == null) {
-            System.out.println("New changesets found, pulling");
-            try {
-                Utils.copyFiles(((DiskRepository) parent).getPath(), dir);
-            } catch (IOException ex) {
-                throw new PbException("IOException", ex);
-            }
-
-            Collection<FileChange> changes = thisState.getWorkDirChanges(null);
-            for (FileChange change : changes) {
-                if (change.getType() == FileChangeType.ADD) {
-                    new File(dir, change.getPath()).delete();
-                }
-            }
-        } else {
-            System.out.println("Nothing to pull");
-        }
+        throw new UnsupportedOperationException();
     }
 
     /*package*/ static class PbFileFilter implements FilenameFilter {
