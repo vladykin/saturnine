@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import org.saturnine.api.WorkDirState;
 import java.io.File;
@@ -18,7 +18,7 @@ import org.saturnine.util.Utils;
 /**
  * @author Alexey Vladykin
  */
-public final class DirState {
+/*package*/ final class DirState {
 
     @SuppressWarnings("unchecked")
     public static DirState read(File dirstate, File basedir) throws IOException {
@@ -152,7 +152,7 @@ public final class DirState {
     }
 
     private void collectFileChanges(File dir, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked) {
-        File[] children = dir.listFiles(new DiskRepository.PbFileFilter());
+        File[] children = dir.listFiles(new LocalRepository.PbFileFilter());
         for (File f : children) {
             if (f.isDirectory()) {
                 collectFileChanges(f, clean, modified, uncertain, untracked);

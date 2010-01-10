@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,11 +14,11 @@ import org.saturnine.util.Utils;
 /**
  * @author Alexey Vladykin
  */
-public final class WorkDirImpl implements WorkDir {
+/*package*/ final class WorkDirImpl implements WorkDir {
 
     private static final String DIRSTATE = "dirstate";
 
-    public static WorkDirImpl create(DiskRepository repository) throws PbException {
+    public static WorkDirImpl create(LocalRepository repository) throws PbException {
         File dirstateFile = repository.metadataFile(DIRSTATE);
         DirState dirstate;
         if (dirstateFile.exists()) {
@@ -34,16 +34,17 @@ public final class WorkDirImpl implements WorkDir {
         }
         return new WorkDirImpl(repository, dirstate);
     }
-    private final DiskRepository repository;
+
+    private final LocalRepository repository;
     private DirState dirstate;
 
-    private WorkDirImpl(DiskRepository repository, DirState dirstate) {
+    private WorkDirImpl(LocalRepository repository, DirState dirstate) {
         this.repository = repository;
         this.dirstate = dirstate;
     }
 
     @Override
-    public DiskRepository getRepository() {
+    public LocalRepository getRepository() {
         return repository;
     }
 

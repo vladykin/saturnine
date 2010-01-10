@@ -1,4 +1,4 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,9 +14,9 @@ import org.saturnine.util.Hash;
  *
  * @author Alexey Vladykin
  */
-/*package*/ class DiskChangeset implements Changeset {
+/*package*/ class ChangesetImpl implements Changeset {
 
-    private final DiskRepository repository;
+    private final LocalRepository repository;
     private final String id;
     private final String primaryParent;
     private final String secondaryParent;
@@ -24,7 +24,7 @@ import org.saturnine.util.Hash;
     private final String comment;
     private final Date timestamp;
 
-    public DiskChangeset(DiskRepository repository) {
+    public ChangesetImpl(LocalRepository repository) {
         this.repository = repository;
         this.id = Changeset.NULL_ID;
         this.primaryParent = Changeset.NULL_ID;
@@ -34,7 +34,7 @@ import org.saturnine.util.Hash;
         this.timestamp = new Date(0);
     }
 
-    public DiskChangeset(DiskRepository repository, String id, String primaryParent, String secondaryParent, String author, String comment, Date timestamp) throws PbException {
+    public ChangesetImpl(LocalRepository repository, String id, String primaryParent, String secondaryParent, String author, String comment, Date timestamp) throws PbException {
         this.repository = repository;
         this.id = id;
         this.primaryParent = primaryParent;
@@ -77,20 +77,20 @@ import org.saturnine.util.Hash;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public static DiskChangeset create(WorkDir dirstate,
+    public static ChangesetImpl create(WorkDir dirstate,
             String author,
             String comment,
             List<? extends FileChange> changes) throws PbException {
 
-        DiskRepository repository = (DiskRepository) dirstate.getRepository();
+        LocalRepository repository = (LocalRepository) dirstate.getRepository();
         String parentID = dirstate.getParentChangesetID();
         String changesetID = createID(repository, parentID, changes);
-        DiskChangeset changeset = new DiskChangeset(
+        ChangesetImpl changeset = new ChangesetImpl(
                 repository, changesetID, parentID, Changeset.NULL_ID,
                 author, comment, new Date());
 
         try {
-            FileWriter writer = new FileWriter(repository.metadataFile(DiskRepository.CHANGESETS + "/" + changesetID));
+            FileWriter writer = new FileWriter(repository.metadataFile(LocalRepository.CHANGESETS + "/" + changesetID));
             writer.write(parentID + "\n");
             writer.write(changeset.getAuthor() + "\n");
             writer.write(changeset.getComment() + "\n");
@@ -103,7 +103,7 @@ import org.saturnine.util.Hash;
         return changeset;
     }
 
-    private static String createID(DiskRepository repository, String parentID, List<? extends FileChange> changes) throws PbException {
+    private static String createID(LocalRepository repository, String parentID, List<? extends FileChange> changes) throws PbException {
         try {
             Hash hash = Hash.createSHA1();
             hash.update(repository.getURL());

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.saturnine.api.PbException;
 import org.saturnine.api.WorkDir;
 import org.saturnine.cli.PbCommand;
-import org.saturnine.disk.impl.DiskRepository;
+import org.saturnine.local.LocalRepository;
 
 /**
  * @author Alexey Vladykin
@@ -24,7 +24,7 @@ public class RemoveCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        DiskRepository repository = DiskRepository.find(new File("."));
+        LocalRepository repository = LocalRepository.find(new File("."));
         WorkDir workDir = repository.getWorkDir();
         workDir.remove(Arrays.asList(args));
     }

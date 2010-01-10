@@ -5,7 +5,7 @@ import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.WorkDirState;
 import org.saturnine.cli.PbCommand;
-import org.saturnine.disk.impl.DiskRepository;
+import org.saturnine.local.LocalRepository;
 
 /**
  * @author Alexey Vladykin
@@ -24,7 +24,7 @@ public class StatusCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        Repository repository = DiskRepository.find(new File("."));
+        Repository repository = LocalRepository.find(new File("."));
         WorkDirState workDirState = repository.getWorkDir().scanForChanges(null);
         for (String path : workDirState.getAddedFiles()) {
             System.out.println("A " + path);

@@ -1,11 +1,14 @@
-package org.saturnine.disk.impl;
+package org.saturnine.local;
 
 import java.util.Map;
 import java.util.Set;
 import org.saturnine.api.WorkDirState;
 import org.saturnine.util.Utils;
 
-public final class WorkDirStateImpl implements WorkDirState {
+/**
+ * @author Alexey Vladykin
+ */
+/*package*/ final class WorkDirStateImpl implements WorkDirState {
 
     private final Set<String> addedFiles;
     private final Set<String> removedFiles;

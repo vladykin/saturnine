@@ -3,7 +3,7 @@ package org.saturnine.cli.commands;
 import java.io.File;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
-import org.saturnine.disk.impl.DiskRepository;
+import org.saturnine.local.LocalRepository;
 
 /**
  * @author Alexey Vladykin
@@ -22,11 +22,11 @@ public class CloneCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        DiskRepository source = DiskRepository.open(new File(args[0]));
+        LocalRepository source = LocalRepository.open(new File(args[0]));
         if (!source.getWorkDir().scanForChanges(null).isClean()) {
             throw new PbException("Uncommitted changes in source repository");
         }
 
-        DiskRepository dest = DiskRepository.createClone(source, new File(args[1]));
+        LocalRepository dest = LocalRepository.createClone(source, new File(args[1]));
     }
 }
