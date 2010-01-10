@@ -1,5 +1,6 @@
 package org.saturnine.disk.impl;
 
+import org.saturnine.api.WorkDirState;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,6 +22,8 @@ public final class DirState {
 
     @SuppressWarnings("unchecked")
     public static DirState read(File dirstate, File basedir) throws IOException {
+        String primaryParent;
+        String secondaryParent;
         Map<String, FileState> knownFileStates;
         Set<String> addedFiles;
         Set<String> removedFiles;
@@ -28,6 +31,8 @@ public final class DirState {
 
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dirstate));
         try {
+            primaryParent = ois.readUTF();
+            secondaryParent = ois.readUTF();
             knownFileStates = (Map<String, FileState>) ois.readObject();
             addedFiles = (Set<String>) ois.readObject();
             removedFiles = (Set<String>) ois.readObject();
@@ -38,32 +43,48 @@ public final class DirState {
             ois.close();
         }
 
-        return new DirState(dirstate, basedir, knownFileStates, addedFiles, removedFiles, copyOf);
+        return new DirState(dirstate, basedir, primaryParent, secondaryParent,
+                knownFileStates, addedFiles, removedFiles, copyOf);
     }
 
-    public static DirState create(File dirstate, File basedir, Map<String, FileState> knownFileStates) {
-        return new DirState(dirstate, basedir, knownFileStates,
-                new HashSet<String>(), new HashSet<String>(),
+    public static DirState create(File dirstate, File basedir,
+            String primaryParent, String secondaryParent,
+            Map<String, FileState> knownFileStates) {
+        return new DirState(dirstate, basedir, primaryParent, secondaryParent,
+                knownFileStates, new HashSet<String>(), new HashSet<String>(),
                 new HashMap<String, String>());
     }
 
     private final File dirstate;
     private final File basedir;
+    private final String primaryParent;
+    private final String secondaryParent;
     private final Map<String, FileState> knownFileStates;
     private final Set<String> addedFiles;
     private final Set<String> removedFiles;
     private final Map<String, String> copyOf;
 
     private DirState(File dirstate, File basedir,
+            String primaryParent, String secondaryParent,
             Map<String, FileState> knownFileStates,
             Set<String> addedFiles, Set<String> removedFiles,
             Map<String, String> copyOf) {
         this.dirstate = dirstate;
         this.basedir = basedir;
+        this.primaryParent = primaryParent;
+        this.secondaryParent = secondaryParent;
         this.knownFileStates = Utils.immutableMapCopy(knownFileStates);
         this.addedFiles = addedFiles;
         this.removedFiles = removedFiles;
         this.copyOf = copyOf;
+    }
+
+    public String getPrimaryParent() {
+        return primaryParent;
+    }
+
+    public String getSecondaryParent() {
+        return secondaryParent;
     }
 
     public Set<String> getAddedFiles() {
@@ -100,12 +121,12 @@ public final class DirState {
         }
     }
 
-    public Snapshot createSnapshot() {
+    public WorkDirState scanDir() {
         Set<String> clean = new HashSet<String>();
         Set<String> modified = new HashSet<String>();
         Set<String> uncertain = new HashSet<String>();
         Set<String> untracked = new HashSet<String>();
-        collectFileStates(basedir, clean, modified, uncertain, untracked);
+        collectFileChanges(basedir, clean, modified, uncertain, untracked);
 
         Set<String> missing = new HashSet<String>(knownFileStates.keySet());
         missing.removeAll(removedFiles);
@@ -113,7 +134,7 @@ public final class DirState {
         missing.removeAll(modified);
         missing.removeAll(uncertain);
 
-        return new Snapshot(addedFiles, removedFiles, copyOf, clean, missing, modified, uncertain, untracked);
+        return new WorkDirStateImpl(addedFiles, removedFiles, copyOf, clean, missing, modified, uncertain, untracked);
     }
 
     public void write() throws IOException {
@@ -128,69 +149,11 @@ public final class DirState {
         }
     }
 
-    public static class Snapshot {
-
-        private final Set<String> addedFiles;
-        private final Set<String> removedFiles;
-        private final Map<String, String> copyOf;
-        private final Set<String> cleanFiles;
-        private final Set<String> missingFiles;
-        private final Set<String> modifiedFiles;
-        private final Set<String> uncertainFiles;
-        private final Set<String> untrackedFiles;
-
-        public Snapshot(
-                Set<String> addedFiles, Set<String> removedFiles, Map<String, String> copyOf,
-                Set<String> cleanFiles, Set<String> missingFiles, Set<String> modifiedFiles,
-                Set<String> uncertainFiles, Set<String> untrackedFiles) {
-            this.addedFiles = Utils.immutableSetCopy(addedFiles);
-            this.removedFiles = Utils.immutableSetCopy(removedFiles);
-            this.copyOf = Utils.immutableMapCopy(copyOf);
-            this.cleanFiles = Utils.immutableSetCopy(cleanFiles);
-            this.missingFiles = Utils.immutableSetCopy(missingFiles);
-            this.modifiedFiles = Utils.immutableSetCopy(modifiedFiles);
-            this.uncertainFiles = Utils.immutableSetCopy(uncertainFiles);
-            this.untrackedFiles = Utils.immutableSetCopy(untrackedFiles);
-        }
-
-        public Set<String> getAddedFiles() {
-            return addedFiles;
-        }
-
-        public Set<String> getRemovedFiles() {
-            return removedFiles;
-        }
-
-        public String getCopyOf(String dest) {
-            return copyOf.get(dest);
-        }
-
-        public Set<String> getCleanFiles() {
-            return cleanFiles;
-        }
-
-        public Set<String> getMissingFiles() {
-            return missingFiles;
-        }
-
-        public Set<String> getModifiedFiles() {
-            return modifiedFiles;
-        }
-
-        public Set<String> getUncertainFiles() {
-            return uncertainFiles;
-        }
-
-        public Set<String> getUntrackedFiles() {
-            return untrackedFiles;
-        }
-    }
-
-    private void collectFileStates(File dir, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked) {
+    private void collectFileChanges(File dir, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked) {
         File[] children = dir.listFiles(new DiskRepository.PbFileFilter());
         for (File f : children) {
             if (f.isDirectory()) {
-                collectFileStates(f, clean, modified, uncertain, untracked);
+                collectFileChanges(f, clean, modified, uncertain, untracked);
             } else {
                 String path = Utils.relativePath(basedir, f);
                 FileState knownState = knownFileStates.get(path);
