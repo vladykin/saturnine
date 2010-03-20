@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
-import org.saturnine.api.Changeset;
+import org.saturnine.api.ChangesetInfo;
 import org.saturnine.api.WorkDirState;
-import org.saturnine.api.FileState;
+import org.saturnine.api.FileInfo;
 import static org.junit.Assert.*;
 
 /**
@@ -25,8 +25,8 @@ public class DirStateTest {
     public void testEmpty() {
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                Changeset.NULL_ID, Changeset.NULL_ID,
-                Collections.<String, FileState>emptyMap());
+                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Collections.<String, FileInfo>emptyMap());
         assertEquals(Collections.emptySet(), dirstate.getAddedFiles());
         assertEquals(Collections.emptySet(), dirstate.getRemovedFiles());
 
@@ -46,8 +46,8 @@ public class DirStateTest {
 
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                Changeset.NULL_ID, Changeset.NULL_ID,
-                Collections.<String, FileState>emptyMap());
+                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Collections.<String, FileInfo>emptyMap());
 
         WorkDirState c1 = dirstate.scanDir();
         assertEquals(Collections.singleton("foo"), c1.getUntrackedFiles());
@@ -63,8 +63,8 @@ public class DirStateTest {
     public void testDelete() {
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                Changeset.NULL_ID, Changeset.NULL_ID,
-                Collections.<String, FileState>singletonMap("foo", new FileStateImpl("foo", 5, 35)));
+                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Collections.<String, FileInfo>singletonMap("foo", new FileInfo("foo", 5, (short)0644, 35, "0000000")));
 
         WorkDirState c1 = dirstate.scanDir();
         assertEquals(Collections.singleton("foo"), c1.getMissingFiles());
