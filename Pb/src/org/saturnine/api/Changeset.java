@@ -1,26 +1,15 @@
 package org.saturnine.api;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Alexey Vladykin
  */
 public interface Changeset {
 
-    static final String NULL_ID = "0000000000000000000000000000000000000000";
+    Set<FileInfo> addedFiles();
 
-    String getID();
+    Set<FileInfo> modifiedFiles();
 
-    String getPrimaryParentID();
-
-    String getSecondaryParentID();
-
-    String getAuthor();
-
-    String getComment();
-
-    Date getTimestamp();
-
-    List<FileChange> getFileChanges();
+    Set<String> removedFiles();
 }

@@ -9,7 +9,7 @@ import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import org.saturnine.api.Changeset;
+import org.saturnine.api.ChangesetInfo;
 
 /**
  *
@@ -19,11 +19,11 @@ import org.saturnine.api.Changeset;
 
     @SuppressWarnings("unchecked")
     public static ChangesetDAG read(File file) throws IOException {
-        Map<String, Changeset> changesets;
+        Map<String, ChangesetInfo> changesets;
 
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
         try {
-                changesets = (Map<String, Changeset>) ois.readObject();
+                changesets = (Map<String, ChangesetInfo>) ois.readObject();
         } catch (ClassNotFoundException ex) {
             throw new IOException(ex);
         } finally {
@@ -34,35 +34,35 @@ import org.saturnine.api.Changeset;
     }
 
     public static ChangesetDAG create(File file) {
-        return new ChangesetDAG(file, new HashMap<String, Changeset>());
+        return new ChangesetDAG(file, new HashMap<String, ChangesetInfo>());
     }
 
     private final File file;
-    private final Map<String, Changeset> changesets;
+    private final Map<String, ChangesetInfo> changesets;
 
-    private ChangesetDAG(File file, Map<String, Changeset> changesets) {
+    private ChangesetDAG(File file, Map<String, ChangesetInfo> changesets) {
         this.file = file;
         this.changesets = changesets;
     }
 
-    public void addChangeset(Changeset changeset) {
-        if (!changeset.getID().equals(Changeset.NULL_ID) &&
-                (!changesets.containsKey(changeset.getPrimaryParentID()) ||
-                !changesets.containsKey(changeset.getSecondaryParentID()))) {
+    public void addChangeset(ChangesetInfo changeset) {
+        if (!changeset.id().equals(ChangesetInfo.NULL_ID) &&
+                (!changesets.containsKey(changeset.primaryParent()) ||
+                !changesets.containsKey(changeset.secondaryParent()))) {
             throw new IllegalArgumentException();
         }
-        changesets.put(changeset.getID(), changeset);
+        changesets.put(changeset.id(), changeset);
     }
 
-    public Changeset getChangeset(String id) {
+    public ChangesetInfo getChangeset(String id) {
         return changesets.get(id);
     }
 
-    public Collection<Changeset> getHeads() {
-        Map<String, Changeset> heads = new HashMap<String, Changeset>(changesets);
-        for (Changeset changeset : changesets.values()) {
-            heads.remove(changeset.getPrimaryParentID());
-            heads.remove(changeset.getSecondaryParentID());
+    public Collection<ChangesetInfo> getHeads() {
+        Map<String, ChangesetInfo> heads = new HashMap<String, ChangesetInfo>(changesets);
+        for (ChangesetInfo changeset : changesets.values()) {
+            heads.remove(changeset.primaryParent());
+            heads.remove(changeset.secondaryParent());
         }
         return heads.values();
     }

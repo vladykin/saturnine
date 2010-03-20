@@ -1,7 +1,7 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
-import org.saturnine.api.Changeset;
+import org.saturnine.api.ChangesetInfo;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.LocalRepository;
@@ -24,29 +24,29 @@ public class LogCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.open(new File("."));
-        String changesetID = repository.getHeads().iterator().next().getID();
+        String changesetID = repository.getHeads().iterator().next().id();
         while (changesetID != null) {
-            if (Changeset.NULL_ID.equals(changesetID)) {
+            if (ChangesetInfo.NULL_ID.equals(changesetID)) {
                 break;
             }
 
-            Changeset changeset = repository.getChangeset(changesetID);
+            ChangesetInfo changeset = repository.getChangeset(changesetID);
             if (changeset == null) {
                 throw new PbException("Unable to find changeset " + changesetID);
             }
-            System.out.println("changeset: " + changeset.getID());
-            if (!changeset.getPrimaryParentID().equals(Changeset.NULL_ID)) {
-                System.out.println("parent: " + changeset.getPrimaryParentID());
+            System.out.println("changeset: " + changeset.id());
+            if (!changeset.primaryParent().equals(ChangesetInfo.NULL_ID)) {
+                System.out.println("parent: " + changeset.primaryParent());
             }
-            if (!changeset.getSecondaryParentID().equals(Changeset.NULL_ID)) {
-                System.out.println("parent: " + changeset.getSecondaryParentID());
+            if (!changeset.secondaryParent().equals(ChangesetInfo.NULL_ID)) {
+                System.out.println("parent: " + changeset.secondaryParent());
             }
-            System.out.println("author: " + changeset.getAuthor());
-            System.out.println("comment: " + changeset.getComment());
-            System.out.println("timestamp: " + changeset.getTimestamp());
+            System.out.println("author: " + changeset.author());
+            System.out.println("comment: " + changeset.comment());
+            System.out.println("timestamp: " + changeset.timestamp());
             System.out.println();
 
-            changesetID = changeset.getPrimaryParentID();
+            changesetID = changeset.primaryParent();
         }
     }
 }

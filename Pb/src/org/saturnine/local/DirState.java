@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.saturnine.api.FileState;
+import org.saturnine.api.FileInfo;
 import org.saturnine.util.Utils;
 
 /**
@@ -24,7 +24,7 @@ import org.saturnine.util.Utils;
     public static DirState read(File dirstate, File basedir) throws IOException {
         String primaryParent;
         String secondaryParent;
-        Map<String, FileState> knownFileStates;
+        Map<String, FileInfo> knownFileStates;
         Set<String> addedFiles;
         Set<String> removedFiles;
         Map<String, String> copyOf;
@@ -33,7 +33,7 @@ import org.saturnine.util.Utils;
         try {
             primaryParent = ois.readUTF();
             secondaryParent = ois.readUTF();
-            knownFileStates = (Map<String, FileState>) ois.readObject();
+            knownFileStates = (Map<String, FileInfo>) ois.readObject();
             addedFiles = (Set<String>) ois.readObject();
             removedFiles = (Set<String>) ois.readObject();
             copyOf = (Map<String, String>) ois.readObject();
@@ -49,7 +49,7 @@ import org.saturnine.util.Utils;
 
     public static DirState create(File dirstate, File basedir,
             String primaryParent, String secondaryParent,
-            Map<String, FileState> knownFileStates) {
+            Map<String, FileInfo> knownFileStates) {
         return new DirState(dirstate, basedir, primaryParent, secondaryParent,
                 knownFileStates, new HashSet<String>(), new HashSet<String>(),
                 new HashMap<String, String>());
@@ -59,14 +59,14 @@ import org.saturnine.util.Utils;
     private final File basedir;
     private final String primaryParent;
     private final String secondaryParent;
-    private final Map<String, FileState> knownFileStates;
+    private final Map<String, FileInfo> knownFileStates;
     private final Set<String> addedFiles;
     private final Set<String> removedFiles;
     private final Map<String, String> copyOf;
 
     private DirState(File dirstate, File basedir,
             String primaryParent, String secondaryParent,
-            Map<String, FileState> knownFileStates,
+            Map<String, FileInfo> knownFileStates,
             Set<String> addedFiles, Set<String> removedFiles,
             Map<String, String> copyOf) {
         this.dirstate = dirstate;
@@ -158,7 +158,7 @@ import org.saturnine.util.Utils;
                 collectFileChanges(f, clean, modified, uncertain, untracked);
             } else {
                 String path = Utils.relativePath(basedir, f);
-                FileState knownState = knownFileStates.get(path);
+                FileInfo knownState = knownFileStates.get(path);
                 if (knownState == null) {
                     if (!addedFiles.contains(path)) {
                         untracked.add(path);
@@ -166,9 +166,9 @@ import org.saturnine.util.Utils;
                 } else {
                     long newSize = f.length();
                     long newModified = f.lastModified();
-                    if (newSize != knownState.getSize()) {
+                    if (newSize != knownState.size()) {
                         modified.add(path);
-                    } else if (newModified != knownState.getLastModified()) {
+                    } else if (newModified != knownState.lastModified()) {
                         uncertain.add(path);
                     } else {
                         clean.add(path);
