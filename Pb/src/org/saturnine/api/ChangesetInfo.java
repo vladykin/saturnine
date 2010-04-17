@@ -1,17 +1,15 @@
 package org.saturnine.api;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Alexey Vladykin
  */
-public final class ChangesetInfo {
+public final class ChangesetInfo implements Serializable {
 
     public static final String NULL_ID =
             "0000000000000000000000000000000000000000";
-
-    public static final ChangesetInfo NULL =
-            new ChangesetInfo(NULL_ID, null, null, null, null, null);
 
     private final String id;
     private final String primaryParent;

@@ -48,14 +48,6 @@ public class LocalRepository implements Repository {
                 throw new PbException("Failed to create " + pbrcFile);
             }
 
-            File changesetsFile = new File(metadataDir, CHANGESETS);
-            ChangesetDAG changesets = ChangesetDAG.create(changesetsFile);
-            try {
-                changesets.write();
-            } catch (IOException ex) {
-                throw new PbException("Failed to write changesets", ex);
-            }
-
             File statesDir = new File(metadataDir, STATES);
             if (!statesDir.mkdir()) {
                 throw new PbException("Failed to create " + statesDir);
@@ -112,7 +104,7 @@ public class LocalRepository implements Repository {
 
     private final File dir;
     private WorkDir workdir;
-    private ChangesetDAG changesetDAG;
+    private Changelog changelog;
 
     private LocalRepository(File dir) {
         this.dir = dir;
@@ -150,15 +142,11 @@ public class LocalRepository implements Repository {
         return workdir;
     }
 
-    private ChangesetDAG getChangesetDAG() throws PbException {
-        if (changesetDAG == null) {
-            try {
-                changesetDAG = ChangesetDAG.read(metadataFile(CHANGESETS));
-            } catch (IOException ex) {
-                throw new PbException("Failed to read changesets", ex);
-            }
+    private Changelog getChangesetDAG() throws PbException {
+        if (changelog == null) {
+            changelog = new Changelog(metadataFile(CHANGESETS));
         }
-        return changesetDAG;
+        return changelog;
     }
 
     @Override
@@ -168,7 +156,7 @@ public class LocalRepository implements Repository {
 
     @Override
     public ChangesetInfo getChangeset(String changesetID) throws PbException {
-        return getChangesetDAG().getChangeset(changesetID);
+        return getChangesetDAG().findChangeset(changesetID);
     }
 
     @Override
