@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
-import org.saturnine.api.ChangesetInfo;
+import org.saturnine.api.Changeset;
 import org.saturnine.api.WorkDirState;
 import org.saturnine.api.FileInfo;
 import static org.junit.Assert.*;
@@ -25,7 +25,7 @@ public class DirStateTest {
     public void testEmpty() {
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Changeset.NULL, Changeset.NULL,
                 Collections.<String, FileInfo>emptyMap());
         assertEquals(Collections.emptySet(), dirstate.getAddedFiles());
         assertEquals(Collections.emptySet(), dirstate.getRemovedFiles());
@@ -46,7 +46,7 @@ public class DirStateTest {
 
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Changeset.NULL, Changeset.NULL,
                 Collections.<String, FileInfo>emptyMap());
 
         WorkDirState c1 = dirstate.scanDir();
@@ -63,7 +63,7 @@ public class DirStateTest {
     public void testDelete() {
         DirState dirstate = DirState.create(
                 new File("boo"), basedir,
-                ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                Changeset.NULL, Changeset.NULL,
                 Collections.<String, FileInfo>singletonMap("foo", new FileInfo("foo", 5, (short)0644, 35, "0000000")));
 
         WorkDirState c1 = dirstate.scanDir();

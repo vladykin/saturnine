@@ -13,9 +13,9 @@ public interface Repository {
 
     WorkDir getWorkDir() throws PbException;
 
-    Collection<ChangesetInfo> getHeads() throws PbException;
+    Collection<Changeset> getHeads() throws PbException;
 
-    ChangesetInfo getChangeset(String id) throws PbException;
+    Changeset getChangeset(String id) throws PbException;
 
     void pull(Repository parent) throws PbException;
 }

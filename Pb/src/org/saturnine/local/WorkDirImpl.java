@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import org.saturnine.api.ChangesetInfo;
+import org.saturnine.api.Changeset;
 import org.saturnine.api.WorkDir;
 import org.saturnine.api.WorkDirState;
 import org.saturnine.api.FileInfo;
@@ -29,7 +29,7 @@ import org.saturnine.util.Utils;
             }
         } else {
             dirstate = DirState.create(dirstateFile, repository.getPath(),
-                    ChangesetInfo.NULL_ID, ChangesetInfo.NULL_ID,
+                    Changeset.NULL, Changeset.NULL,
                     Collections.<String, FileInfo>emptyMap());
         }
         return new WorkDirImpl(repository, dirstate);

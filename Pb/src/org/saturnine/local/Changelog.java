@@ -12,7 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.saturnine.api.ChangesetInfo;
+import org.saturnine.api.Changes;
+import org.saturnine.api.Changeset;
 import org.saturnine.api.PbException;
 import org.saturnine.util.Hash;
 
@@ -31,12 +32,12 @@ public final class Changelog {
      * @return collection of changelog heads, i.e. changesets that have no children
      * @throws PbException if an error occurs
      */
-    public Collection<ChangesetInfo> getHeads() throws PbException {
+    public Collection<Changeset> getHeads() throws PbException {
         Changelog.Iterator iterator = getChangesets();
         try {
-            Map<String, ChangesetInfo> heads = new HashMap<String, ChangesetInfo>();
+            Map<String, Changeset> heads = new HashMap<String, Changeset>();
             while (iterator.hasNext()) {
-                ChangesetInfo changeset = iterator.next();
+                Changeset changeset = iterator.next();
                 heads.put(changeset.id(), changeset);
                 heads.remove(changeset.primaryParent());
                 heads.remove(changeset.secondaryParent());
@@ -73,7 +74,7 @@ public final class Changelog {
      * @throws NullPointerException if changesetId is <code>null</code>
      * @throws PbException if an error occurs
      */
-    public ChangesetInfo findChangeset(String changesetId) throws PbException {
+    public Changeset findChangeset(String changesetId) throws PbException {
         if (changesetId == null) {
             throw new NullPointerException("changesetId is null");
         }
@@ -81,7 +82,7 @@ public final class Changelog {
         Changelog.Iterator iterator = getChangesets();
         try {
             while (iterator.hasNext()) {
-                ChangesetInfo changeset = iterator.next();
+                Changeset changeset = iterator.next();
                 if (changeset.id().equals(changesetId)) {
                     return changeset;
                 }
@@ -110,19 +111,48 @@ public final class Changelog {
         return new BuilderImpl();
     }
 
+    /*package*/ static Changeset readChangeset(ObjectInputStream inputStream) throws IOException {
+        String id = inputStream.readUTF();
+        String primaryParent = inputStream.readUTF();
+        String secondaryParent = inputStream.readUTF();
+        if (secondaryParent.isEmpty()) {
+            secondaryParent = null;
+        }
+        String author = inputStream.readUTF();
+        String comment = inputStream.readUTF();
+        Date timestamp = new Date(inputStream.readLong());
+        // TODO: read Changes
+        return new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp, null);
+    }
+
+    /*package*/ static void writeChangeset(ObjectOutputStream outputStream, Changeset changeset) throws IOException {
+        outputStream.writeUTF(changeset.id());
+        outputStream.writeUTF(changeset.primaryParent());
+        if (changeset.secondaryParent() != null) {
+            outputStream.writeUTF(changeset.secondaryParent());
+        } else {
+            outputStream.writeUTF("");
+        }
+        outputStream.writeUTF(changeset.author());
+        outputStream.writeUTF(changeset.comment());
+        outputStream.writeLong(changeset.timestamp().getTime());
+        // TODO: write Changes
+    }
+
     public static interface Iterator {
         boolean hasNext() throws PbException;
-        ChangesetInfo next() throws PbException;
+        Changeset next() throws PbException;
         void close() throws PbException;
     }
 
     public static interface Builder {
         Builder id(String id);
-        Builder primaryParent(String id);
-        Builder secondaryParent(String id);
-        Builder author(String name);
-        Builder comment(String text);
-        Builder timestamp(Date date);
+        Builder primaryParent(String primaryParent);
+        Builder secondaryParent(String secondaryParent);
+        Builder author(String author);
+        Builder comment(String comment);
+        Builder timestamp(Date timestamp);
+        Builder changes(Changes changes);
         String add() throws PbException;
         void commit() throws PbException;
     }
@@ -144,18 +174,16 @@ public final class Changelog {
         }
 
         @Override
-        public ChangesetInfo next() throws PbException {
+        public Changeset next() throws PbException {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
             try {
-                ChangesetInfo changeset = (ChangesetInfo) inputStream.readObject();
+                Changeset changeset = readChangeset(inputStream);
                 hasNext = inputStream.readBoolean();
                 return changeset;
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
-            } catch (ClassNotFoundException ex) {
-                throw new PbException("ClassNotFoundException", ex);
             }
         }
 
@@ -177,7 +205,7 @@ public final class Changelog {
         }
 
         @Override
-        public ChangesetInfo next() {
+        public Changeset next() {
             throw new NoSuchElementException();
         }
 
@@ -200,6 +228,7 @@ public final class Changelog {
         private String author;
         private String comment;
         private Date timestamp;
+        private Changes changes;
         private int count;
         
         private BuilderImpl() {
@@ -236,6 +265,11 @@ public final class Changelog {
             return this;
         }
 
+        public Builder changes(Changes changes) {
+            this.changes = changes;
+            return this;
+        }
+
         public String add() throws PbException {
             checkData();
             try {
@@ -252,7 +286,7 @@ public final class Changelog {
                     }
                 }
                 outputStream.writeBoolean(true);
-                outputStream.writeObject(new ChangesetInfo(id, primaryParent, secondaryParent, author, comment, timestamp));
+                writeChangeset(outputStream, new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp, changes));
                 ++count;
 
                 String idBackup = id;
@@ -262,6 +296,7 @@ public final class Changelog {
                 author = null;
                 comment = null;
                 timestamp = null;
+                changes = null;
                 return idBackup;
             } catch (IOException ex) {
                 if (outputStream != null) {
@@ -277,15 +312,10 @@ public final class Changelog {
         public void commit() throws PbException {
             if (0 < count) {
                 try {
-                    outputStream.writeBoolean(false);
+                    writeEofAndClose(outputStream);
                 } catch (IOException ex) {
                     tmpFile.delete();
                     throw new PbException("IOException", ex);
-                } finally {
-                    try {
-                        outputStream.close();
-                    } catch (IOException ex) {
-                    }
                 }
                 if (file.exists() && !file.delete() || !tmpFile.renameTo(file)) {
                     throw new PbException("Failed to move " + tmpFile + " to " + file);
@@ -296,6 +326,12 @@ public final class Changelog {
         private void checkData() throws PbException {
             if (primaryParent == null) {
                 throw new PbException("primaryParent is null");
+            }
+            if (author == null) {
+                throw new PbException("author is null");
+            }
+            if (comment == null) {
+                throw new PbException("comment is null");
             }
             if (timestamp == null) {
                 timestamp = new Date();
@@ -315,6 +351,14 @@ public final class Changelog {
             h.update(comment);
             h.update(timestamp.toString());
             return h.resultAsHex();
+        }
+
+        private void writeEofAndClose(ObjectOutputStream outputStream) throws IOException {
+            try {
+                outputStream.writeBoolean(false);
+            } finally {
+                outputStream.close();
+            }
         }
     }
     // </editor-fold>

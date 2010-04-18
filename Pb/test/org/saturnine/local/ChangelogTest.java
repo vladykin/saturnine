@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.saturnine.api.ChangesetInfo;
+import org.saturnine.api.Changeset;
 import static org.junit.Assert.*;
 
 /**
@@ -35,14 +35,15 @@ public class ChangelogTest {
         assertTrue(changelog.getHeads().isEmpty());
 
         Changelog.Builder b = changelog.newChangesetBuilder();
-        String id = b.primaryParent(ChangesetInfo.NULL_ID).author("Alexey").comment("test").add();
+        b.primaryParent(Changeset.NULL).author("Alexey").comment("test");
+        String id = b.add();
         b.commit();
 
-        Collection<ChangesetInfo> heads = changelog.getHeads();
+        Collection<Changeset> heads = changelog.getHeads();
         assertEquals(1, heads.size());
-        ChangesetInfo head = heads.iterator().next();
+        Changeset head = heads.iterator().next();
         assertEquals(id, head.id());
-        assertEquals(ChangesetInfo.NULL_ID, head.primaryParent());
+        assertEquals(Changeset.NULL, head.primaryParent());
         assertNull(head.secondaryParent());
         assertEquals("Alexey", head.author());
         assertEquals("test", head.comment());
