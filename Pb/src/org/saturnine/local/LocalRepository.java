@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Properties;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
-import org.saturnine.api.ChangesetInfo;
+import org.saturnine.api.Changeset;
 import org.saturnine.api.WorkDir;
 import org.saturnine.util.Utils;
 
@@ -150,12 +150,12 @@ public class LocalRepository implements Repository {
     }
 
     @Override
-    public Collection<ChangesetInfo> getHeads() throws PbException {
+    public Collection<Changeset> getHeads() throws PbException {
         return getChangesetDAG().getHeads();
     }
 
     @Override
-    public ChangesetInfo getChangeset(String changesetID) throws PbException {
+    public Changeset getChangeset(String changesetID) throws PbException {
         return getChangesetDAG().findChangeset(changesetID);
     }
 
