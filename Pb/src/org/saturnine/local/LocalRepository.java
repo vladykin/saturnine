@@ -144,19 +144,31 @@ public class LocalRepository implements Repository {
 
     private Changelog getChangesetDAG() throws PbException {
         if (changelog == null) {
-            changelog = new Changelog(metadataFile(CHANGESETS));
+            try {
+                changelog = new Changelog(metadataFile(CHANGESETS));
+            } catch (IOException ex) {
+                throw new PbException("IOException", ex);
+            }
         }
         return changelog;
     }
 
     @Override
     public Collection<Changeset> getHeads() throws PbException {
-        return getChangesetDAG().getHeads();
+        try {
+            return getChangesetDAG().getHeads();
+        } catch (IOException ex) {
+            throw new PbException("IOException", ex);
+        }
     }
 
     @Override
     public Changeset getChangeset(String changesetID) throws PbException {
-        return getChangesetDAG().findChangeset(changesetID);
+        try {
+            return getChangesetDAG().findChangeset(changesetID);
+        } catch (IOException ex) {
+            throw new PbException("IOException", ex);
+        }
     }
 
     @Override

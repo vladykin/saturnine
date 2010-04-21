@@ -34,19 +34,14 @@ public class ChangelogTest {
     public void testGetHeads() throws Exception {
         assertTrue(changelog.getHeads().isEmpty());
 
-        Changelog.Builder b = changelog.newChangesetBuilder();
-        b.primaryParent(Changeset.NULL).author("Alexey").comment("test");
-        String id = b.add();
-        b.commit();
+        Changelog.Builder builder = changelog.newChangesetBuilder();
+        builder.primaryParent(Changeset.NULL).author("Alexey").comment("test");
+        Changeset changeset = builder.closeChangeset();
+        builder.close();
 
         Collection<Changeset> heads = changelog.getHeads();
         assertEquals(1, heads.size());
         Changeset head = heads.iterator().next();
-        assertEquals(id, head.id());
-        assertEquals(Changeset.NULL, head.primaryParent());
-        assertNull(head.secondaryParent());
-        assertEquals("Alexey", head.author());
-        assertEquals("test", head.comment());
-        assertNotNull(head.timestamp());
+        assertEquals(changeset, head);
     }
 }
