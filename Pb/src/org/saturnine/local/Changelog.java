@@ -1,9 +1,9 @@
 package org.saturnine.local;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -103,7 +103,7 @@ public final class Changelog {
         return new Changelog.Builder();
     }
 
-    private static Changeset readChangeset(ObjectInputStream inputStream) throws IOException {
+    private static Changeset readChangeset(DataInputStream inputStream) throws IOException {
         String id = inputStream.readUTF();
         String primaryParent = inputStream.readUTF();
         String secondaryParent = inputStream.readUTF();
@@ -116,7 +116,7 @@ public final class Changelog {
         return new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
     }
 
-    private static void writeChangeset(ObjectOutputStream outputStream, Changeset changeset) throws IOException {
+    private static void writeChangeset(DataOutputStream outputStream, Changeset changeset) throws IOException {
         outputStream.writeUTF(changeset.id());
         outputStream.writeUTF(changeset.primaryParent());
         if (changeset.secondaryParent() != null) {
@@ -142,7 +142,7 @@ public final class Changelog {
                 return null;
             }
 
-            ObjectInputStream inputStream = new ObjectInputStream(delegate.inputStream());
+            DataInputStream inputStream = new DataInputStream(delegate.inputStream());
             try {
                 return readChangeset(inputStream);
             } finally {
@@ -204,7 +204,7 @@ public final class Changelog {
 
             Changeset changeset = new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
             delegate.next();
-            ObjectOutputStream outputStream = new ObjectOutputStream(delegate.outputStream());
+            DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
                 writeChangeset(outputStream, changeset);
             } finally {
