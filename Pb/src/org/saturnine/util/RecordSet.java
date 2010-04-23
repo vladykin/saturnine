@@ -1,4 +1,4 @@
-package org.saturnine.local;
+package org.saturnine.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,11 +14,24 @@ import java.io.OutputStream;
  */
 public final class RecordSet {
 
+    public static RecordSet create(File file) throws IOException {
+        return new RecordSet(file, true);
+    }
+
+    public static RecordSet open(File file) throws IOException {
+        return new RecordSet(file, false);
+    }
+
     private final File file;
 
-    public RecordSet(File file) throws IOException {
+    private RecordSet(File file, boolean create) throws IOException {
+        if (create) {
+            new FileOutputStream(file).close();
+        }
+        if (!file.exists()) {
+            throw new IOException(file.getPath() + " does not exist");
+        }
         this.file = file;
-        file.createNewFile();
     }
 
     public InputStream getRecord(Key key) throws IOException {

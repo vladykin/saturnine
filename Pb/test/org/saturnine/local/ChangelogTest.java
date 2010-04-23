@@ -22,7 +22,7 @@ public class ChangelogTest {
     @Before
     public void setUp() throws Exception {
         changelogFile = new File("build/test/changelog.test");
-        changelog = new Changelog(changelogFile);
+        changelog = Changelog.create(changelogFile);
     }
 
     @After

@@ -1,4 +1,4 @@
-package org.saturnine.local;
+package org.saturnine.util;
 
 import java.io.File;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ public class RecordSetTest {
     @Before
     public void setUp() throws Exception {
         recordsetFile = new File("build/test/recordset");
-        recordset = new RecordSet(recordsetFile);
+        recordset = RecordSet.create(recordsetFile);
     }
 
     @After
