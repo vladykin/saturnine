@@ -145,7 +145,7 @@ public class LocalRepository implements Repository {
     private Changelog getChangesetDAG() throws PbException {
         if (changelog == null) {
             try {
-                changelog = new Changelog(metadataFile(CHANGESETS));
+                changelog = Changelog.open(metadataFile(CHANGESETS));
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }

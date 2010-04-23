@@ -10,16 +10,25 @@ import java.util.HashMap;
 import java.util.Map;
 import org.saturnine.api.Changeset;
 import org.saturnine.util.Hash;
+import org.saturnine.util.RecordSet;
 
 /**
  * @author Alexey Vladykin
  */
 public final class Changelog {
 
+    public static Changelog create(File file) throws IOException {
+        return new Changelog(file, true);
+    }
+
+    public static Changelog open(File file) throws IOException {
+        return new Changelog(file, false);
+    }
+
     private final RecordSet recordset;
 
-    /*package*/ Changelog(File file) throws IOException {
-        this.recordset = new RecordSet(file);
+    private Changelog(File file, boolean create) throws IOException {
+        this.recordset = create? RecordSet.create(file) : RecordSet.open(file);
     }
 
     /**
