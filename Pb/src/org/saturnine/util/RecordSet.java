@@ -2,6 +2,7 @@ package org.saturnine.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -61,14 +62,29 @@ public final class RecordSet {
         return new Writer();
     }
 
-    private static byte[] readRecord(InputStream inputStream) throws IOException {
-        byte[] buf = new byte[4];
-        int bufBytesRead = inputStream.read(buf);
-        if (bufBytesRead < 4) {
+    private static int readInt(InputStream inputStream) throws IOException {
+        int b1 = inputStream.read();
+        int b2 = inputStream.read();
+        int b3 = inputStream.read();
+        int b4 = inputStream.read();
+        if ((b1 | b2 | b3 | b4) < 0) {
+            throw new EOFException();
+        }
+        return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+    }
+
+    private static void writeInt(FileOutputStream outputStream, int n) throws IOException {
+        outputStream.write(n >>> 24);
+        outputStream.write(n >>> 16);
+        outputStream.write(n >>> 8);
+        outputStream.write(n);
+    }
+
+    private static byte[] readRecord(FileInputStream inputStream) throws IOException {
+        if (inputStream.getChannel().size() - inputStream.getChannel().position() < 4) {
             return null;
         }
-
-        int recordSize = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+        int recordSize = readInt(inputStream);
         byte[] record = new byte[recordSize];
         int recordBytesRead = inputStream.read(record);
         if (recordBytesRead < recordSize) {
@@ -78,12 +94,8 @@ public final class RecordSet {
         return record;
     }
 
-    private static void writeRecord(OutputStream outputStream, byte[] record) throws IOException {
-        int recordSize = record.length;
-        outputStream.write(recordSize >>> 24);
-        outputStream.write(recordSize >>> 16);
-        outputStream.write(recordSize >>> 8);
-        outputStream.write(recordSize);
+    private static void writeRecord(FileOutputStream outputStream, byte[] record) throws IOException {
+        writeInt(outputStream, record.length);
         outputStream.write(record);
     }
 
