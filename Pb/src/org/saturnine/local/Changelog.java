@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.saturnine.api.Changeset;
+import org.saturnine.lib.IOUtil;
 import org.saturnine.util.Hash;
 import org.saturnine.util.RecordSet;
 
@@ -36,7 +37,7 @@ public final class Changelog {
      * @throws IOException if an error occurs
      */
     public Collection<Changeset> getHeads() throws IOException {
-        Changelog.Reader reader = newChangesetReader();
+        Changelog.Reader reader = newReader();
         try {
             Map<String, Changeset> heads = new HashMap<String, Changeset>();
             for (;;) {
@@ -68,7 +69,7 @@ public final class Changelog {
             throw new NullPointerException("changesetId is null");
         }
         // TODO: optimize
-        Changelog.Reader reader = newChangesetReader();
+        Changelog.Reader reader = newReader();
         try {
             for (;;) {
                 Changeset changeset = reader.next();
@@ -104,38 +105,12 @@ public final class Changelog {
      *      order. Remember to close the iterator once finished.
      * @throws IOException if an error occurs
      */
-    public Changelog.Reader newChangesetReader() throws IOException {
+    public Changelog.Reader newReader() throws IOException {
         return new Changelog.Reader();
     }
 
-    public Builder newChangesetBuilder() throws IOException {
+    public Builder newBuilder() throws IOException {
         return new Changelog.Builder();
-    }
-
-    private static Changeset readChangeset(DataInputStream inputStream) throws IOException {
-        String id = inputStream.readUTF();
-        String primaryParent = inputStream.readUTF();
-        String secondaryParent = inputStream.readUTF();
-        if (secondaryParent.isEmpty()) {
-            secondaryParent = null;
-        }
-        String author = inputStream.readUTF();
-        String comment = inputStream.readUTF();
-        Date timestamp = new Date(inputStream.readLong());
-        return new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
-    }
-
-    private static void writeChangeset(DataOutputStream outputStream, Changeset changeset) throws IOException {
-        outputStream.writeUTF(changeset.id());
-        outputStream.writeUTF(changeset.primaryParent());
-        if (changeset.secondaryParent() != null) {
-            outputStream.writeUTF(changeset.secondaryParent());
-        } else {
-            outputStream.writeUTF("");
-        }
-        outputStream.writeUTF(changeset.author());
-        outputStream.writeUTF(changeset.comment());
-        outputStream.writeLong(changeset.timestamp().getTime());
     }
 
     public final class Reader {
@@ -153,7 +128,7 @@ public final class Changelog {
 
             DataInputStream inputStream = new DataInputStream(delegate.inputStream());
             try {
-                return readChangeset(inputStream);
+                return IOUtil.readChangeset(inputStream);
             } finally {
                 inputStream.close();
             }
@@ -172,7 +147,7 @@ public final class Changelog {
         private String secondaryParent;
         private String author;
         private String comment;
-        private Date timestamp;
+        private long timestamp;
 
         private Builder() throws IOException {
             delegate = recordset.newWriter();
@@ -203,8 +178,8 @@ public final class Changelog {
             return this;
         }
 
-        public Builder timestamp(Date timestamp) {
-            this.timestamp = (Date) timestamp.clone();
+        public Builder timestamp(long timestamp) {
+            this.timestamp = timestamp;
             return this;
         }
 
@@ -214,7 +189,7 @@ public final class Changelog {
             Changeset changeset = new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
-                writeChangeset(outputStream, changeset);
+                IOUtil.writeChangeset(outputStream, changeset);
                 outputStream.close();
             } finally {
                 delegate.closeRecord();
@@ -225,7 +200,7 @@ public final class Changelog {
             secondaryParent = null;
             author = null;
             comment = null;
-            timestamp = null;
+            timestamp = 0;
 
             return changeset;
         }
@@ -244,8 +219,8 @@ public final class Changelog {
             if (comment == null) {
                 throw new IllegalArgumentException("comment is null");
             }
-            if (timestamp == null) {
-                timestamp = new Date();
+            if (timestamp == 0) {
+                timestamp = new Date().getTime();
             }
             if (id == null) {
                 id = generateId();
@@ -261,7 +236,7 @@ public final class Changelog {
             }
             h.update(author);
             h.update(comment);
-            h.update(timestamp.toString());
+            h.update(Long.toString(timestamp));
             return h.resultAsHex();
         }
     }

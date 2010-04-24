@@ -34,7 +34,7 @@ public class ChangelogTest {
     public void testGetHeads() throws Exception {
         assertTrue(changelog.getHeads().isEmpty());
 
-        Changelog.Builder builder = changelog.newChangesetBuilder();
+        Changelog.Builder builder = changelog.newBuilder();
         builder.primaryParent(Changeset.NULL).author("Alexey").comment("test");
         Changeset changeset = builder.closeChangeset();
         builder.close();
