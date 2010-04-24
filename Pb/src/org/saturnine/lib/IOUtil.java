@@ -93,7 +93,7 @@ public class IOUtil {
         Map<String, FileInfo> modifiedFiles = readFileInfoMap(inputStream);
         Set<String> removedFiles = readStringSet(inputStream);
         Map<String, String> origins = readStringMap(inputStream);
-        return new DirDiff(oldState, newState, addedFiles, modifiedFiles, removedFiles, origins);
+        return new DirDiff(newState, oldState, addedFiles, modifiedFiles, removedFiles, origins);
     }
 
     public static void writeDirDiff(DataOutputStream outputStream, DirDiff diff) throws IOException {

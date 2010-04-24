@@ -129,8 +129,9 @@ public final class Dirlog {
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
                 IOUtil.writeDirDiff(outputStream, diff);
-            } finally {
                 outputStream.close();
+            } finally {
+                delegate.closeRecord();
             }
             setDefaults();
             return diff;
