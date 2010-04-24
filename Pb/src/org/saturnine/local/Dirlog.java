@@ -4,11 +4,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
 import org.saturnine.lib.IOUtil;
@@ -28,21 +30,32 @@ public final class Dirlog {
     }
 
     private final RecordSet recordset;
+    private final Map<String, String> index;
 
     private Dirlog(File file, boolean create) throws IOException {
         this.recordset = create ? RecordSet.create(file) : RecordSet.open(file);
+        this.index = new HashMap<String, String>();
+        if (!create) {
+            rebuildIndex();
+        }
     }
 
-    public DirDiff diff(String id) {
-        return null;
-    }
+//    public DirDiff diff(String id) {
+//        return null;
+//    }
+//
+//    public DirDiff diff(String id1, String id2) {
+//        return null;
+//    }
 
-    public DirDiff diff(String id1, String id2) {
-        return null;
-    }
+    public Map<String, FileInfo> state(String id) throws IOException {
+        List<String> ids = new ArrayList<String>();
+        while (!id.equals(Changeset.NULL)) {
+            ids.add(id);
+            id = index.get(id);
+        }
+        Collections.reverse(ids);
 
-    // TODO: replace with List<String> with single String: calculate list automatically
-    public Map<String, FileInfo> state(List<String> ids) throws IOException {
         Dirlog.Reader reader = new Reader();
         try {
             Map<String, FileInfo> state = new HashMap<String, FileInfo>();
@@ -110,6 +123,22 @@ public final class Dirlog {
         }
     }
 
+    private void rebuildIndex() throws IOException {
+        Dirlog.Reader reader = newReader();
+        try {
+            index.clear();
+            for (;;) {
+                DirDiff diff = reader.next();
+                if (diff == null) {
+                    break;
+                }
+                index.put(diff.newState(), diff.oldState());
+            }
+        } finally {
+            reader.close();
+        }
+    }
+
     public final class Builder {
 
         private final RecordSet.Writer delegate;
@@ -165,6 +194,7 @@ public final class Dirlog {
             } finally {
                 delegate.closeRecord();
             }
+            index.put(newState, oldState);
             setDefaults();
             return diff;
         }

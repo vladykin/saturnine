@@ -1,7 +1,6 @@
 package org.saturnine.local;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -82,15 +81,15 @@ public class DirlogTest {
             builder.close();
         }
 
-        Map<String, FileInfo> state1 = dirlog.state(Arrays.asList("0123456789012345678901234567890123456789"));
+        Map<String, FileInfo> state1 = dirlog.state("0123456789012345678901234567890123456789");
         assertEquals(1, state1.size());
         assertEquals(new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer"), state1.get("foo"));
 
-        Map<String, FileInfo> state2 = dirlog.state(Arrays.asList("0123456789012345678901234567890123456789", "1234567890123456789012345678901234567890"));
+        Map<String, FileInfo> state2 = dirlog.state("1234567890123456789012345678901234567890");
         assertEquals(1, state2.size());
         assertEquals(new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf"), state2.get("foo"));
 
-        Map<String, FileInfo> state3 = dirlog.state(Arrays.asList("0123456789012345678901234567890123456789", "1234567890123456789012345678901234567890", "2345678901234567890123456789012345678901"));
+        Map<String, FileInfo> state3 = dirlog.state("2345678901234567890123456789012345678901");
         assertEquals(0, state3.size());
     }
 }
