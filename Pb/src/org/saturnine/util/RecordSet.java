@@ -78,14 +78,13 @@ public final class RecordSet {
         return record;
     }
 
-    private static int writeRecord(OutputStream outputStream, byte[] record) throws IOException {
+    private static void writeRecord(OutputStream outputStream, byte[] record) throws IOException {
         int recordSize = record.length;
         outputStream.write(recordSize >>> 24);
         outputStream.write(recordSize >>> 16);
         outputStream.write(recordSize >>> 8);
         outputStream.write(recordSize);
         outputStream.write(record);
-        return 4 + recordSize;
     }
 
     public static final class Key {
