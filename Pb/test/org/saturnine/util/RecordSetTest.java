@@ -38,7 +38,7 @@ public class RecordSetTest {
 
         RecordSet.Writer writer = recordset.newWriter();
         try {
-            writer.next();
+            writer.closeRecord();
         } finally {
             writer.close();
         }
@@ -56,16 +56,16 @@ public class RecordSetTest {
     public void testReaderInputStream() throws Exception {
         RecordSet.Writer writer = recordset.newWriter();
         try {
-            writer.next();
             writer.outputStream().write(1);
             writer.outputStream().write(2);
             writer.outputStream().write(3);
             writer.outputStream().close();
-            writer.next();
+            writer.closeRecord();
             writer.outputStream().write(3);
             writer.outputStream().write(2);
             writer.outputStream().write(1);
             writer.outputStream().close();
+            writer.closeRecord();
         } finally {
             writer.close();
         }
@@ -101,7 +101,7 @@ public class RecordSetTest {
     public void testReaderException2() throws Exception {
         RecordSet.Writer writer = recordset.newWriter();
         try {
-            writer.next();
+            writer.closeRecord();
         } finally {
             writer.close();
         }
@@ -123,12 +123,12 @@ public class RecordSetTest {
 
         RecordSet.Writer writer = recordset.newWriter();
         try {
-            k1 = writer.next();
             writer.outputStream().write(new byte[] {-6, -7});
             writer.outputStream().close();
-            k2 = writer.next();
+            k1 = writer.closeRecord();
             writer.outputStream().write(new byte[] {14, 15, 16, 17});
             writer.outputStream().close();
+            k2 = writer.closeRecord();
         } finally {
             writer.close();
         }

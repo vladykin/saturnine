@@ -99,7 +99,8 @@ public final class RecordSet {
 
     public final class Reader {
 
-        private final InputStream inputStream;
+        private final FileInputStream inputStream;
+        private long recordKey;
         private byte[] record;
         private boolean eof;
 
@@ -112,6 +113,7 @@ public final class RecordSet {
                 return false;
             }
 
+            recordKey = inputStream.getChannel().position();
             record = readRecord(inputStream);
             if (record == null) {
                 eof = true;
@@ -121,60 +123,65 @@ public final class RecordSet {
             return true;
         }
 
-        public InputStream inputStream() throws IOException {
-            if (record == null && !eof) {
-                throw new IllegalStateException("Before first record");
-            }
-            if (eof) {
-                throw new IllegalStateException("After last record");
-            }
+        public Key key() throws IOException {
+            checkState();
+            return new Key(recordKey);
+        }
 
+        public InputStream inputStream() throws IOException {
+            checkState();
             return new ByteArrayInputStream(record);
         }
 
         public void close() throws IOException {
             inputStream.close();
         }
+
+        private void checkState() {
+            if (record == null && !eof) {
+                throw new IllegalStateException("Before first record");
+            }
+            if (eof) {
+                throw new IllegalStateException("After last record");
+            }
+        }
     }
 
     public final class Writer {
 
-        private final OutputStream outputStream;
-        private long offset;
+        private final FileOutputStream outputStream;
         private ByteArrayOutputStream recordOutputStream;
         private boolean eof;
 
         private Writer() throws IOException {
-            this.offset = file.length();
             this.outputStream = new FileOutputStream(file, true);
         }
 
-        public Key next() throws IOException {
-            writePendingRecordIfAny();
-            recordOutputStream = new ByteArrayOutputStream(1024);
-            return new Key(offset);
-        }
-
         public OutputStream outputStream() throws IOException {
-            if (eof) {
-                throw new IllegalStateException("After last record");
-            }
+            checkState();
             if (recordOutputStream == null) {
-                throw new IllegalStateException("Before first record");
+                recordOutputStream = new ByteArrayOutputStream(1024);
             }
             return recordOutputStream;
         }
 
+        public Key closeRecord() throws IOException {
+            checkState();
+            long recordKey = outputStream.getChannel().position();
+            writeRecord(outputStream, recordOutputStream == null
+                    ? new byte[0] : recordOutputStream.toByteArray());
+            recordOutputStream = null;
+            return new Key(recordKey);
+        }
+
         public void close() throws IOException {
-            writePendingRecordIfAny();
             eof = true;
             outputStream.close();
         }
 
-        private void writePendingRecordIfAny() throws IOException {
-            if (recordOutputStream != null) {
-                offset += writeRecord(outputStream, recordOutputStream.toByteArray());
-                recordOutputStream = null;
+        private void checkState() {
+            if (eof) {
+                throw new IllegalStateException("Writer is already closed");
             }
         }
     }
