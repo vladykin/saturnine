@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.saturnine.api.DirDiff;
@@ -39,8 +41,26 @@ public final class Dirlog {
         return null;
     }
 
-    public Map<String, FileInfo> state(String id) {
-        return null;
+    // TODO: replace with List<String> with single String: calculate list automatically
+    public Map<String, FileInfo> state(List<String> ids) throws IOException {
+        Dirlog.Reader reader = new Reader();
+        try {
+            Map<String, FileInfo> state = new HashMap<String, FileInfo>();
+            int expectedIdPos = 0;
+            while (expectedIdPos < ids.size()) {
+                DirDiff diff = reader.next();
+                if (diff == null) {
+                    throw new IOException("Reached eof while looking for " + ids.get(expectedIdPos));
+                }
+                if (diff.newState().equals(ids.get(expectedIdPos))) {
+                    ++expectedIdPos;
+                    applyDiff(state, diff);
+                }
+            }
+            return state;
+        } finally {
+            reader.close();
+        }
     }
 
     public Reader newReader() throws IOException {
@@ -50,6 +70,18 @@ public final class Dirlog {
     public Builder newBuilder() throws IOException {
         // TODO: locking
         return new Builder();
+    }
+
+    private static void applyDiff(Map<String, FileInfo> state, DirDiff diff) {
+        for (FileInfo fileInfo : diff.addedFiles().values()) {
+            state.put(fileInfo.path(), fileInfo);
+        }
+        for (FileInfo fileInfo : diff.modifiedFiles().values()) {
+            state.put(fileInfo.path(), fileInfo);
+        }
+        for (String path : diff.removedFiles()) {
+            state.remove(path);
+        }
     }
 
     public final class Reader {
