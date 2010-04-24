@@ -1,7 +1,5 @@
 package org.saturnine.api;
 
-import java.util.Date;
-
 /**
  * @author Alexey Vladykin
  */
@@ -15,11 +13,11 @@ public final class Changeset {
     private final String secondaryParent;
     private final String author;
     private final String comment;
-    private final Date timestamp;
+    private final long timestamp;
 
     public Changeset(
             String id, String primaryParent, String secondaryParent,
-            String author, String comment, Date timestamp) {
+            String author, String comment, long timestamp) {
         this.id = id;
         this.primaryParent = primaryParent;
         this.secondaryParent = secondaryParent;
@@ -48,7 +46,7 @@ public final class Changeset {
         return comment;
     }
 
-    public Date timestamp() {
+    public long timestamp() {
         return timestamp;
     }
 
@@ -68,7 +66,7 @@ public final class Changeset {
                 && (this.secondaryParent == null ? that.secondaryParent == null : this.secondaryParent.equals(that.secondaryParent))
                 && this.author.equals(that.author)
                 && this.comment.equals(that.comment)
-                && this.timestamp.equals(that.timestamp);
+                && this.timestamp == that.timestamp;
     }
 
     @Override
@@ -79,7 +77,7 @@ public final class Changeset {
         hash = 53 * hash + (this.secondaryParent != null ? this.secondaryParent.hashCode() : 0);
         hash = 53 * hash + this.author.hashCode();
         hash = 53 * hash + this.comment.hashCode();
-        hash = 53 * hash + this.timestamp.hashCode();
+        hash = 53 * hash + (int) ((this.timestamp >>> 32) ^ this.timestamp);
         return hash;
     }
 }
