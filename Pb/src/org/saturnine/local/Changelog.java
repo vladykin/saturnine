@@ -212,12 +212,12 @@ public final class Changelog {
             checkData();
 
             Changeset changeset = new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
-            delegate.next();
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
                 writeChangeset(outputStream, changeset);
-            } finally {
                 outputStream.close();
+            } finally {
+                delegate.closeRecord();
             }
 
             id = null;
