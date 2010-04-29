@@ -10,7 +10,6 @@ import java.util.Properties;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.Changeset;
-import org.saturnine.api.WorkDir;
 import org.saturnine.util.Utils;
 
 /**
@@ -23,6 +22,7 @@ public class LocalRepository implements Repository {
     /*package*/ static final String CHANGESETS = "changesets";
     /*package*/ static final String STATES = "states";
     private static final String PBRC = "pbrc";
+    private static final String DIRSTATE = "dirstate";
 
     /**
      * Parent repository URL.
@@ -103,7 +103,7 @@ public class LocalRepository implements Repository {
     }
 
     private final File dir;
-    private WorkDir workdir;
+    private DirState dirstate;
     private Changelog changelog;
 
     private LocalRepository(File dir) {
@@ -134,12 +134,15 @@ public class LocalRepository implements Repository {
         return props.getProperty(key);
     }
 
-    @Override
-    public WorkDir getWorkDir() throws PbException {
-        if (workdir == null) {
-            workdir = WorkDirImpl.create(this);
+    public DirState getDirState() throws PbException {
+        if (dirstate == null) {
+            try {
+                dirstate = DirState.open(metadataFile(DIRSTATE), dir);
+            } catch (IOException ex) {
+                throw new PbException("IOException", ex);
+            }
         }
-        return workdir;
+        return dirstate;
     }
 
     private Changelog getChangesetDAG() throws PbException {

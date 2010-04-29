@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.saturnine.api.Changeset;
-import org.saturnine.lib.IOUtil;
 import org.saturnine.util.Hash;
 import org.saturnine.util.RecordSet;
 
@@ -128,7 +127,7 @@ public final class Changelog {
 
             DataInputStream inputStream = new DataInputStream(delegate.inputStream());
             try {
-                return IOUtil.readChangeset(inputStream);
+                return DataIO.readChangeset(inputStream);
             } finally {
                 inputStream.close();
             }
@@ -189,7 +188,7 @@ public final class Changelog {
             Changeset changeset = new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
-                IOUtil.writeChangeset(outputStream, changeset);
+                DataIO.writeChangeset(outputStream, changeset);
                 outputStream.close();
             } finally {
                 delegate.closeRecord();

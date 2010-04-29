@@ -1,7 +1,9 @@
-package org.saturnine.lib;
+package org.saturnine.local;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +16,13 @@ import org.saturnine.api.FileInfo;
 /**
  * @author Alexey Vladykin
  */
-public class IOUtil {
+public class DataIO {
 
-    private IOUtil() {
+    private DataIO() {
+    }
+
+    public static void emptyFile(File file) throws IOException {
+        new FileOutputStream(file).close();
     }
 
     public static FileInfo readFileInfo(DataInputStream inputStream) throws IOException {

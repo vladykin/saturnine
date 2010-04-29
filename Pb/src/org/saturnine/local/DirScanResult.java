@@ -2,13 +2,12 @@ package org.saturnine.local;
 
 import java.util.Map;
 import java.util.Set;
-import org.saturnine.api.WorkDirState;
 import org.saturnine.util.Utils;
 
 /**
  * @author Alexey Vladykin
  */
-/*package*/ final class WorkDirStateImpl implements WorkDirState {
+public final class DirScanResult {
 
     private final Set<String> addedFiles;
     private final Set<String> removedFiles;
@@ -19,7 +18,7 @@ import org.saturnine.util.Utils;
     private final Set<String> uncertainFiles;
     private final Set<String> untrackedFiles;
 
-    public WorkDirStateImpl(Set<String> addedFiles, Set<String> removedFiles, Map<String, String> copyOf, Set<String> cleanFiles, Set<String> missingFiles, Set<String> modifiedFiles, Set<String> uncertainFiles, Set<String> untrackedFiles) {
+    public DirScanResult(Set<String> addedFiles, Set<String> removedFiles, Map<String, String> copyOf, Set<String> cleanFiles, Set<String> missingFiles, Set<String> modifiedFiles, Set<String> uncertainFiles, Set<String> untrackedFiles) {
         this.addedFiles = Utils.immutableSetCopy(addedFiles);
         this.removedFiles = Utils.immutableSetCopy(removedFiles);
         this.copyOf = Utils.immutableMapCopy(copyOf);

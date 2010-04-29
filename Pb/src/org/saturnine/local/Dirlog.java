@@ -13,7 +13,6 @@ import java.util.Set;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
-import org.saturnine.lib.IOUtil;
 import org.saturnine.util.RecordSet;
 
 /**
@@ -112,7 +111,7 @@ public final class Dirlog {
 
             DataInputStream inputStream = new DataInputStream(delegate.inputStream());
             try {
-                return IOUtil.readDirDiff(inputStream);
+                return DataIO.readDirDiff(inputStream);
             } finally {
                 inputStream.close();
             }
@@ -189,7 +188,7 @@ public final class Dirlog {
             DirDiff diff = new DirDiff(newState, oldState, addedFiles, modifiedFiles, removedFiles, origins);
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
-                IOUtil.writeDirDiff(outputStream, diff);
+                DataIO.writeDirDiff(outputStream, diff);
                 outputStream.close();
             } finally {
                 delegate.closeRecord();
