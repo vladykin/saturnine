@@ -21,10 +21,6 @@ public class DataIO {
     private DataIO() {
     }
 
-    public static void emptyFile(File file) throws IOException {
-        new FileOutputStream(file).close();
-    }
-
     public static FileInfo readFileInfo(DataInputStream inputStream) throws IOException {
         String path = inputStream.readUTF();
         long size = inputStream.readLong();

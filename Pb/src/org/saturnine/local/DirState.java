@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.FileInfo;
-import org.saturnine.util.Utils;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -151,7 +151,7 @@ public final class DirState {
                 if (f.isDirectory()) {
                     collectFileChanges(f, clean, modified, uncertain, untracked);
                 } else {
-                    String path = Utils.relativePath(basedir, f);
+                    String path = FileUtil.relativePath(basedir, f);
                     FileInfo knownState = knownFiles.get(path);
                     if (knownState == null) {
                         if (!addedFiles.contains(path)) {
@@ -233,7 +233,7 @@ public final class DirState {
                 DataIO.writeStringSet(outputStream, addedFiles);
                 DataIO.writeStringSet(outputStream, removedFiles);
                 DataIO.writeStringMap(outputStream, origins);
-                tmpFile.renameTo(dirstate);
+                FileUtil.rename(tmpFile, dirstate);
                 return new Snapshot(primaryParent, secondaryParent, knownFiles, addedFiles, removedFiles, origins);
             } finally {
                 outputStream.close();

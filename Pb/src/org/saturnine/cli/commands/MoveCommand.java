@@ -7,6 +7,7 @@ import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.DirState;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -26,12 +27,8 @@ public class MoveCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.find(new File("."));
-        boolean success = new File(repository.getPath(), args[0]).renameTo(
-                new File(repository.getPath(), args[1]));
-        if (!success) {
-            throw new PbException("Failed to move " + args[0] + " to " + args[1]);
-        }
         try {
+            FileUtil.rename(new File(repository.getPath(), args[0]), new File(repository.getPath(), args[1]));
             DirState.Builder builder = repository.getDirState().newBuilder(true);
             builder.removedFiles(Collections.singleton(args[0]));
             builder.addedFiles(Collections.singleton(args[1]));
