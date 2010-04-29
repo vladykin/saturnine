@@ -1,10 +1,11 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.Collections;
 import org.saturnine.api.PbException;
-import org.saturnine.api.WorkDir;
 import org.saturnine.cli.PbCommand;
+import org.saturnine.local.DirState;
 import org.saturnine.local.LocalRepository;
 
 /**
@@ -25,7 +26,18 @@ public class RemoveCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.find(new File("."));
-        WorkDir workDir = repository.getWorkDir();
-        workDir.remove(Arrays.asList(args));
+        try {
+            DirState.Builder builder = repository.getDirState().newBuilder(true);
+            for (String path : args) {
+                boolean success = new File(repository.getPath(), path).delete();
+                if (!success) {
+                    throw new PbException("Failed to delete " + path);
+                }
+                builder.removedFiles(Collections.singleton(path));
+            }
+            builder.close();
+        } catch (IOException ex) {
+            throw new PbException("Failed to write dirstate", ex);
+        }
     }
 }

@@ -23,6 +23,6 @@ public class CommitCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.find(new File("."));
-        repository.getWorkDir().commit("Alexey", args[0], null);
+        throw new UnsupportedOperationException("Not yet");
     }
 }

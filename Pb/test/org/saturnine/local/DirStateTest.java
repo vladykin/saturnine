@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
-import org.saturnine.api.Changeset;
-import org.saturnine.api.WorkDirState;
 import org.saturnine.api.FileInfo;
 import static org.junit.Assert.*;
 
@@ -15,22 +13,27 @@ import static org.junit.Assert.*;
 public class DirStateTest {
 
     private FakeFile basedir;
+    private File dirstateFile;
+    private DirState dirstate;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         basedir = new FakeFile("/tmp/foo");
+        dirstateFile = new File("build/test/dirstate");
+        dirstate = DirState.create(dirstateFile, basedir);
+    }
+
+    public void tearDown() throws Exception {
+        dirstateFile.delete();
     }
 
     @Test
-    public void testEmpty() {
-        DirState dirstate = DirState.create(
-                new File("boo"), basedir,
-                Changeset.NULL, Changeset.NULL,
-                Collections.<String, FileInfo>emptyMap());
-        assertEquals(Collections.emptySet(), dirstate.getAddedFiles());
-        assertEquals(Collections.emptySet(), dirstate.getRemovedFiles());
+    public void testEmpty() throws Exception {
+        DirState.Snapshot snapshot = dirstate.snapshot();
+        assertEquals(Collections.emptySet(), snapshot.addedFiles());
+        assertEquals(Collections.emptySet(), snapshot.removedFiles());
 
-        WorkDirState c = dirstate.scanDir();
+        DirScanResult c = snapshot.scanDir();
         assertEquals(Collections.emptySet(), c.getAddedFiles());
         assertEquals(Collections.emptySet(), c.getRemovedFiles());
         assertEquals(Collections.emptySet(), c.getCleanFiles());
@@ -41,37 +44,36 @@ public class DirStateTest {
     }
 
     @Test
-    public void testAdd() {
+    public void testAdd() throws Exception {
         basedir.addChildFile("foo", 5, 35);
 
-        DirState dirstate = DirState.create(
-                new File("boo"), basedir,
-                Changeset.NULL, Changeset.NULL,
-                Collections.<String, FileInfo>emptyMap());
-
-        WorkDirState c1 = dirstate.scanDir();
+        DirScanResult c1 = dirstate.snapshot().scanDir();
         assertEquals(Collections.singleton("foo"), c1.getUntrackedFiles());
         assertEquals(Collections.emptySet(), c1.getAddedFiles());
 
-        dirstate.setAdded("foo");
-        WorkDirState c2 = dirstate.scanDir();
+        DirState.Builder builder = dirstate.newBuilder(true);
+        builder.addedFiles(Collections.singleton("foo"));
+
+        DirScanResult c2 = builder.close().scanDir();
         assertEquals(Collections.emptySet(), c2.getUntrackedFiles());
         assertEquals(Collections.singleton("foo"), c2.getAddedFiles());
     }
 
     @Test
-    public void testDelete() {
-        DirState dirstate = DirState.create(
-                new File("boo"), basedir,
-                Changeset.NULL, Changeset.NULL,
-                Collections.<String, FileInfo>singletonMap("foo", new FileInfo("foo", 5, (short)0644, 35, "0000000")));
+    public void testDelete() throws Exception {
+        DirState.Builder builder1 = dirstate.newBuilder(false);
+        builder1.knownFiles(Collections.singletonMap("foo", new FileInfo("foo", 5, (short)0644, 35, "0000000")));
+        builder1.close();
 
-        WorkDirState c1 = dirstate.scanDir();
+        DirScanResult c1 = dirstate.snapshot().scanDir();
         assertEquals(Collections.singleton("foo"), c1.getMissingFiles());
         assertEquals(Collections.emptySet(), c1.getRemovedFiles());
 
-        dirstate.setRemoved("foo");
-        WorkDirState c2 = dirstate.scanDir();
+        DirState.Builder builder2 = dirstate.newBuilder(true);
+        builder2.removedFiles(Collections.singleton("foo"));
+        builder2.close();
+
+        DirScanResult c2 = dirstate.snapshot().scanDir();
         assertEquals(Collections.emptySet(), c2.getMissingFiles());
         assertEquals(Collections.singleton("foo"), c2.getRemovedFiles());
     }
