@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.saturnine.local.DataIO;
 
 /**
  * @author Alexey Vladykin
@@ -28,7 +27,7 @@ public final class RecordSet {
 
     private RecordSet(File file, boolean create) throws IOException {
         if (create) {
-            DataIO.emptyFile(file);
+            FileUtil.empty(file);
         }
         if (!file.exists()) {
             throw new IOException(file.getPath() + " does not exist");

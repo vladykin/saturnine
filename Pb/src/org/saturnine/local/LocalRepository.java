@@ -10,7 +10,7 @@ import java.util.Properties;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 import org.saturnine.api.Changeset;
-import org.saturnine.util.Utils;
+import org.saturnine.util.FileUtil;
 
 /**
  *
@@ -67,7 +67,7 @@ public class LocalRepository implements Repository {
         }
 
         try {
-            Utils.copyFiles(parent.dir, dir);
+            FileUtil.copyFiles(parent.dir, dir);
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }

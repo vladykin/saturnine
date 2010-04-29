@@ -7,7 +7,7 @@ import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.DirState;
 import org.saturnine.local.LocalRepository;
-import org.saturnine.util.Utils;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -29,7 +29,7 @@ public class CopyCommand implements PbCommand {
         LocalRepository repository = LocalRepository.find(new File("."));
         DirState dirstate = repository.getDirState();
         try {
-            Utils.copyFiles(new File(repository.getPath(), args[0]), new File(repository.getPath(), args[1]));
+            FileUtil.copyFiles(new File(repository.getPath(), args[0]), new File(repository.getPath(), args[1]));
         } catch (IOException ex) {
             throw new PbException("Failed to copy", ex);
         }

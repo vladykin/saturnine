@@ -7,6 +7,7 @@ import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.DirState;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -29,10 +30,7 @@ public class RemoveCommand implements PbCommand {
         try {
             DirState.Builder builder = repository.getDirState().newBuilder(true);
             for (String path : args) {
-                boolean success = new File(repository.getPath(), path).delete();
-                if (!success) {
-                    throw new PbException("Failed to delete " + path);
-                }
+                FileUtil.delete(new File(repository.getPath(), path));
                 builder.removedFiles(Collections.singleton(path));
             }
             builder.close();
