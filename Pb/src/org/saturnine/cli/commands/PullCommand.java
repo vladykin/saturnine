@@ -30,6 +30,6 @@ public class PullCommand implements PbCommand {
         }
 
         LocalRepository parent = LocalRepository.open(new File(parentPath));
-        repository.pull(parent);
+        throw new PbException("Not implemented yet");
     }
 }

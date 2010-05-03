@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -163,23 +164,25 @@ public final class Dirlog {
             return this;
         }
 
-        public Builder addedFiles(Map<String, FileInfo> addedFiles) {
-            this.addedFiles = addedFiles;
+        public Builder addedFile(FileInfo addedFile) {
+            addedFiles.put(addedFile.path(), addedFile);
+            removedFiles.remove(addedFile.path());
             return this;
         }
 
-        public Builder modifiedFiles(Map<String, FileInfo> modifiedFiles) {
-            this.modifiedFiles = modifiedFiles;
+        public Builder modifiedFile(FileInfo modifiedFile) {
+            modifiedFiles.put(modifiedFile.path(), modifiedFile);
             return this;
         }
 
-        public Builder removedFiles(Set<String> removedFiles) {
-            this.removedFiles = removedFiles;
+        public Builder removedFile(String removedFile) {
+            removedFiles.add(removedFile);
+            addedFiles.remove(removedFile);
             return this;
         }
 
-        public Builder origins(Map<String, String> origins) {
-            this.origins = origins;
+        public Builder origin(String dst, String src) {
+            origins.put(dst, src);
             return this;
         }
 
@@ -205,10 +208,10 @@ public final class Dirlog {
         private void setDefaults() {
             newState = null;
             oldState = null;
-            addedFiles = Collections.emptyMap();
-            modifiedFiles = Collections.emptyMap();
-            removedFiles = Collections.emptySet();
-            origins = Collections.emptyMap();
+            addedFiles = new HashMap<String, FileInfo>();
+            modifiedFiles = new HashMap<String, FileInfo>();
+            removedFiles = new HashSet<String>();
+            origins = new HashMap<String, String>();
         }
     }
 }
