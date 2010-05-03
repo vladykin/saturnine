@@ -176,10 +176,10 @@ public final class RecordSet {
             return recordOutputStream;
         }
 
-        public Key closeRecord() throws IOException {
+        public Key writeRecord() throws IOException {
             checkState();
             long recordKey = outputStream.getChannel().position();
-            writeRecord(outputStream, recordOutputStream == null
+            RecordSet.writeRecord(outputStream, recordOutputStream == null
                     ? new byte[0] : recordOutputStream.toByteArray());
             recordOutputStream = null;
             return new Key(recordKey);

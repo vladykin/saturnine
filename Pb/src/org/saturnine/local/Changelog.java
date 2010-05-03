@@ -181,7 +181,7 @@ public final class Changelog {
             return this;
         }
 
-        public Changeset closeChangeset() throws IOException {
+        public Changeset writeChangeset() throws IOException {
             checkData();
 
             Changeset changeset = new Changeset(id, primaryParent, secondaryParent, author, comment, timestamp);
@@ -190,7 +190,7 @@ public final class Changelog {
                 DataIO.writeChangeset(outputStream, changeset);
                 outputStream.close();
             } finally {
-                delegate.closeRecord();
+                delegate.writeRecord();
             }
 
             id = null;

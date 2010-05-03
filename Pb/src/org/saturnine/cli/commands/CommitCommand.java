@@ -56,7 +56,7 @@ public class CommitCommand implements PbCommand {
             for (String removedFile : scanResult.getRemovedFiles()) {
                 dirlogBuilder.removedFile(removedFile);
             }
-            DirDiff diff = dirlogBuilder.closeDiff();
+            DirDiff diff = dirlogBuilder.writeDiff();
             dirlogBuilder.close();
 
             Changelog changelog = repository.getChangelog();
@@ -67,7 +67,7 @@ public class CommitCommand implements PbCommand {
             changelogBuilder.author(System.getProperty("user.name"));
             changelogBuilder.comment("no comment");
             changelogBuilder.timestamp(new Date().getTime());
-            changelogBuilder.closeChangeset();
+            changelogBuilder.writeChangeset();
             changelogBuilder.close();
 
             DirState.Builder dirstateBuilder = dirstate.newBuilder(false);
