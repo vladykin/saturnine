@@ -5,11 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Properties;
+import org.saturnine.api.FileInfo;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
-import org.saturnine.api.Changeset;
 import org.saturnine.util.FileUtil;
 
 /**
@@ -19,8 +18,8 @@ import org.saturnine.util.FileUtil;
 public class LocalRepository implements Repository {
 
     /*package*/ static final String DOT_PB = ".pb";
-    /*package*/ static final String CHANGESETS = "changesets";
-    /*package*/ static final String STATES = "states";
+    /*package*/ static final String CHANGES = "changes";
+    /*package*/ static final String DIRLOG = "dirlog";
     private static final String PBRC = "pbrc";
     private static final String DIRSTATE = "dirstate";
 
@@ -41,16 +40,18 @@ public class LocalRepository implements Repository {
                 throw new PbException("Failed to create " + metadataDir);
             }
 
+            File dirlogFile = new File(metadataDir, DIRLOG);
+            try {
+                Dirlog dirlog = Dirlog.create(dirlogFile);
+            } catch (IOException ex) {
+                throw new PbException("Failed to create " + dirlogFile);
+            }
+
             File pbrcFile = new File(metadataDir, PBRC);
             try {
                 pbrcFile.createNewFile();
             } catch (IOException ex) {
                 throw new PbException("Failed to create " + pbrcFile);
-            }
-
-            File statesDir = new File(metadataDir, STATES);
-            if (!statesDir.mkdir()) {
-                throw new PbException("Failed to create " + statesDir);
             }
 
             return new LocalRepository(dir);
@@ -103,8 +104,9 @@ public class LocalRepository implements Repository {
     }
 
     private final File dir;
-    private DirState dirstate;
     private Changelog changelog;
+    private Dirlog dirlog;
+    private DirState dirstate;
 
     private LocalRepository(File dir) {
         this.dir = dir;
@@ -145,10 +147,21 @@ public class LocalRepository implements Repository {
         return dirstate;
     }
 
-    private Changelog getChangesetDAG() throws PbException {
+    public Dirlog getDirlog() throws PbException {
+        if (dirlog == null) {
+            try {
+                dirlog = Dirlog.open(metadataFile(DIRLOG));
+            } catch (IOException ex) {
+                throw new PbException("IOException", ex);
+            }
+        }
+        return dirlog;
+    }
+
+    public Changelog getChangelog() throws PbException {
         if (changelog == null) {
             try {
-                changelog = Changelog.open(metadataFile(CHANGESETS));
+                changelog = Changelog.open(metadataFile(CHANGES));
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }
@@ -156,27 +169,13 @@ public class LocalRepository implements Repository {
         return changelog;
     }
 
-    @Override
-    public Collection<Changeset> getHeads() throws PbException {
-        try {
-            return getChangesetDAG().getHeads();
-        } catch (IOException ex) {
-            throw new PbException("IOException", ex);
+    public FileInfo fileInfo(String path) throws IOException {
+        File file = new File(dir, path);
+        if (file.exists()) {
+            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), null);
+        } else {
+            throw new IOException("File " + file + " does not exist");
         }
-    }
-
-    @Override
-    public Changeset getChangeset(String changesetID) throws PbException {
-        try {
-            return getChangesetDAG().findChangeset(changesetID);
-        } catch (IOException ex) {
-            throw new PbException("IOException", ex);
-        }
-    }
-
-    @Override
-    public void pull(Repository parent) throws PbException {
-        throw new UnsupportedOperationException();
     }
 
     /*package*/ static class PbFileFilter implements FilenameFilter {

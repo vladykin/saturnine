@@ -1,7 +1,6 @@
 package org.saturnine.local;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import org.junit.After;
@@ -38,8 +37,7 @@ public class DirlogTest {
         try {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
-            builder.addedFiles(Collections.singletonMap("foo",
-                    new FileInfo("foo", 123, (short) 0644, new Date().getTime(), "qwerqwer")));
+            builder.addedFile(new FileInfo("foo", 123, (short) 0644, new Date().getTime(), "qwerqwer"));
             diff1 = builder.closeDiff();
         } finally {
             builder.close();
@@ -63,19 +61,17 @@ public class DirlogTest {
         try {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
-            builder.addedFiles(Collections.singletonMap("foo",
-                    new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer")));
+            builder.addedFile(new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer"));
             builder.closeDiff();
 
             builder.newState("1234567890123456789012345678901234567890");
             builder.oldState("0123456789012345678901234567890123456789");
-            builder.modifiedFiles(Collections.singletonMap("foo",
-                    new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf")));
+            builder.modifiedFile(new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf"));
             builder.closeDiff();
 
             builder.newState("2345678901234567890123456789012345678901");
             builder.oldState("1234567890123456789012345678901234567890");
-            builder.removedFiles(Collections.singleton("foo"));
+            builder.removedFile("foo");
             builder.closeDiff();
         } finally {
             builder.close();

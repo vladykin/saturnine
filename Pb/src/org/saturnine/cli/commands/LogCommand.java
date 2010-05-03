@@ -1,9 +1,11 @@
 package org.saturnine.cli.commands;
 
 import java.io.File;
+import java.io.IOException;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
+import org.saturnine.local.Changelog;
 import org.saturnine.local.LocalRepository;
 
 /**
@@ -24,29 +26,24 @@ public class LogCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.open(new File("."));
-        String changesetID = repository.getHeads().iterator().next().id();
-        while (changesetID != null) {
-            if (Changeset.NULL.equals(changesetID)) {
-                break;
+        Changelog changelog = repository.getChangelog();
+        try {
+            Changelog.Reader reader = changelog.newReader();
+            for (Changeset changeset = reader.next(); changeset != null; changeset = reader.next()) {
+                System.out.println("changeset: " + changeset.id());
+                if (!changeset.primaryParent().equals(Changeset.NULL)) {
+                    System.out.println("parent: " + changeset.primaryParent());
+                }
+                if (!changeset.secondaryParent().equals(Changeset.NULL)) {
+                    System.out.println("parent: " + changeset.secondaryParent());
+                }
+                System.out.println("author: " + changeset.author());
+                System.out.println("comment: " + changeset.comment());
+                System.out.println("timestamp: " + changeset.timestamp());
+                System.out.println();
             }
-
-            Changeset changeset = repository.getChangeset(changesetID);
-            if (changeset == null) {
-                throw new PbException("Unable to find changeset " + changesetID);
-            }
-            System.out.println("changeset: " + changeset.id());
-            if (!changeset.primaryParent().equals(Changeset.NULL)) {
-                System.out.println("parent: " + changeset.primaryParent());
-            }
-            if (!changeset.secondaryParent().equals(Changeset.NULL)) {
-                System.out.println("parent: " + changeset.secondaryParent());
-            }
-            System.out.println("author: " + changeset.author());
-            System.out.println("comment: " + changeset.comment());
-            System.out.println("timestamp: " + changeset.timestamp());
-            System.out.println();
-
-            changesetID = changeset.primaryParent();
+        } catch (IOException ex) {
+            throw new PbException("IOException", ex);
         }
     }
 }

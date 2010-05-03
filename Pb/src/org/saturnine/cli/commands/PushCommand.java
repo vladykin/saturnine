@@ -30,6 +30,6 @@ public class PushCommand implements PbCommand {
         }
 
         LocalRepository parent = LocalRepository.open(new File(parentPath));
-        parent.pull(repository);
+        throw new PbException("Not implemented yet");
     }
 }
