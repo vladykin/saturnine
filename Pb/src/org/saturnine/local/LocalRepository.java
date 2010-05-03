@@ -18,7 +18,7 @@ import org.saturnine.util.FileUtil;
 public class LocalRepository implements Repository {
 
     /*package*/ static final String DOT_PB = ".pb";
-    /*package*/ static final String CHANGES = "changes";
+    /*package*/ static final String CHANGELOG = "changelog";
     /*package*/ static final String DIRLOG = "dirlog";
     private static final String PBRC = "pbrc";
     private static final String DIRSTATE = "dirstate";
@@ -40,11 +40,25 @@ public class LocalRepository implements Repository {
                 throw new PbException("Failed to create " + metadataDir);
             }
 
+            File changelogFile = new File(metadataDir, CHANGELOG);
+            try {
+                Changelog changelog = Changelog.create(changelogFile);
+            } catch (IOException ex) {
+                throw new PbException("Failed to create " + changelogFile);
+            }
+
             File dirlogFile = new File(metadataDir, DIRLOG);
             try {
                 Dirlog dirlog = Dirlog.create(dirlogFile);
             } catch (IOException ex) {
                 throw new PbException("Failed to create " + dirlogFile);
+            }
+
+            File dirstateFile = new File(metadataDir, DIRSTATE);
+            try {
+                DirState dirstate = DirState.create(dirstateFile, dir);
+            } catch (IOException ex) {
+                throw new PbException("Failed to create " + dirstateFile);
             }
 
             File pbrcFile = new File(metadataDir, PBRC);
@@ -161,7 +175,7 @@ public class LocalRepository implements Repository {
     public Changelog getChangelog() throws PbException {
         if (changelog == null) {
             try {
-                changelog = Changelog.open(metadataFile(CHANGES));
+                changelog = Changelog.open(metadataFile(CHANGELOG));
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }
