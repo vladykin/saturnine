@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.saturnine.api.Changeset;
-import org.saturnine.util.Hash;
 import org.saturnine.util.RecordSet;
 
 /**
@@ -209,6 +208,9 @@ public final class Changelog {
         }
 
         private void checkData() {
+            if (id == null) {
+                throw new IllegalArgumentException("id is null");
+            }
             if (primaryParent == null) {
                 throw new IllegalArgumentException("primaryParent is null");
             }
@@ -221,22 +223,6 @@ public final class Changelog {
             if (timestamp == 0) {
                 timestamp = new Date().getTime();
             }
-            if (id == null) {
-                id = generateId();
-            }
-        }
-
-        private String generateId() {
-            // TODO: verify that id does not appear in changelog yet
-            Hash h = Hash.createSHA1();
-            h.update(primaryParent);
-            if (secondaryParent != null) {
-                h.update(secondaryParent);
-            }
-            h.update(author);
-            h.update(comment);
-            h.update(Long.toString(timestamp));
-            return h.resultAsHex();
         }
     }
 }

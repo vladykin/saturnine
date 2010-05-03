@@ -34,7 +34,7 @@ public class LogCommand implements PbCommand {
                 if (!changeset.primaryParent().equals(Changeset.NULL)) {
                     System.out.println("parent: " + changeset.primaryParent());
                 }
-                if (!changeset.secondaryParent().equals(Changeset.NULL)) {
+                if (changeset.secondaryParent() != null) {
                     System.out.println("parent: " + changeset.secondaryParent());
                 }
                 System.out.println("author: " + changeset.author());
