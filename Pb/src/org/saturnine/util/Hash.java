@@ -39,6 +39,10 @@ public final class Hash {
         }
     }
 
+    public void update(long num) {
+        update(String.valueOf(num));
+    }
+
     public byte[] result() {
         if (result == null) {
             result = md.digest();

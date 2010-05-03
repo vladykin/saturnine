@@ -186,7 +186,7 @@ public class LocalRepository implements Repository {
     public FileInfo fileInfo(String path) throws IOException {
         File file = new File(dir, path);
         if (file.exists()) {
-            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), null);
+            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), "01234567890123456789");
         } else {
             throw new IOException("File " + file + " does not exist");
         }

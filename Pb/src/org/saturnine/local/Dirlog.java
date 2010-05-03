@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Set;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
+import org.saturnine.util.Hash;
 import org.saturnine.util.RecordSet;
 
 /**
@@ -187,7 +189,7 @@ public final class Dirlog {
         }
 
         public DirDiff closeDiff() throws IOException {
-            // TODO: check data
+            checkData();
             DirDiff diff = new DirDiff(newState, oldState, addedFiles, modifiedFiles, removedFiles, origins);
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
             try {
@@ -212,6 +214,32 @@ public final class Dirlog {
             modifiedFiles = new HashMap<String, FileInfo>();
             removedFiles = new HashSet<String>();
             origins = new HashMap<String, String>();
+        }
+
+        private void checkData() {
+            if (newState == null) {
+                newState = generateId();
+            }
+            if (oldState == null) {
+                oldState = Changeset.NULL;
+            }
+        }
+
+        private String generateId() {
+            // TODO: verify that id does not appear in changelog yet
+            Hash h = Hash.createSHA1();
+            h.update(oldState);
+            h.update(new Date().getTime());
+            for (String addedFile : addedFiles.keySet()) {
+                h.update(addedFile);
+            }
+            for (String modifiedFile : modifiedFiles.keySet()) {
+                h.update(modifiedFile);
+            }
+            for (String removedFile : removedFiles) {
+                h.update(removedFile);
+            }
+            return h.resultAsHex();
         }
     }
 }
