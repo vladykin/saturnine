@@ -188,7 +188,7 @@ public final class Dirlog {
             return this;
         }
 
-        public DirDiff closeDiff() throws IOException {
+        public DirDiff writeDiff() throws IOException {
             checkData();
             DirDiff diff = new DirDiff(newState, oldState, addedFiles, modifiedFiles, removedFiles, origins);
             DataOutputStream outputStream = new DataOutputStream(delegate.outputStream());
@@ -196,7 +196,7 @@ public final class Dirlog {
                 DataIO.writeDirDiff(outputStream, diff);
                 outputStream.close();
             } finally {
-                delegate.closeRecord();
+                delegate.writeRecord();
             }
             index.put(newState, oldState);
             setDefaults();

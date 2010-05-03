@@ -38,7 +38,7 @@ public class DirlogTest {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
             builder.addedFile(new FileInfo("foo", 123, (short) 0644, new Date().getTime(), "qwerqwer"));
-            diff1 = builder.closeDiff();
+            diff1 = builder.writeDiff();
         } finally {
             builder.close();
         }
@@ -62,17 +62,17 @@ public class DirlogTest {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
             builder.addedFile(new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer"));
-            builder.closeDiff();
+            builder.writeDiff();
 
             builder.newState("1234567890123456789012345678901234567890");
             builder.oldState("0123456789012345678901234567890123456789");
             builder.modifiedFile(new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf"));
-            builder.closeDiff();
+            builder.writeDiff();
 
             builder.newState("2345678901234567890123456789012345678901");
             builder.oldState("1234567890123456789012345678901234567890");
             builder.removedFile("foo");
-            builder.closeDiff();
+            builder.writeDiff();
         } finally {
             builder.close();
         }

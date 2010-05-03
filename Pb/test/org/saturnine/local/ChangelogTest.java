@@ -36,7 +36,7 @@ public class ChangelogTest {
 
         Changelog.Builder builder = changelog.newBuilder();
         builder.primaryParent(Changeset.NULL).author("Alexey").comment("test");
-        Changeset changeset = builder.closeChangeset();
+        Changeset changeset = builder.writeChangeset();
         builder.close();
 
         Collection<Changeset> heads = changelog.getHeads();
