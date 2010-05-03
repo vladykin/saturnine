@@ -70,6 +70,11 @@ public class CommitCommand implements PbCommand {
             changelogBuilder.closeChangeset();
             changelogBuilder.close();
 
+            DirState.Builder dirstateBuilder = dirstate.newBuilder(false);
+            dirstateBuilder.primaryParent(diff.newState());
+            dirstateBuilder.knownFiles(dirlog.state(diff.newState()));
+            dirstateBuilder.close();
+
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }
