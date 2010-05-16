@@ -2,14 +2,12 @@ package org.saturnine.local;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Properties;
 import org.saturnine.api.FileInfo;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
-import org.saturnine.util.FileUtil;
 
 /**
  *
@@ -70,37 +68,6 @@ public class LocalRepository implements Repository {
 
             return new LocalRepository(dir);
         }
-    }
-
-    public static LocalRepository createClone(LocalRepository parent, File dir) throws PbException {
-        if (dir.exists()) {
-            throw new PbException(dir + " already exists");
-        }
-
-        if (!dir.mkdir()) {
-            throw new PbException("Failed to create " + dir);
-        }
-
-        try {
-            FileUtil.copyFiles(parent.dir, dir);
-        } catch (IOException ex) {
-            throw new PbException("IOException", ex);
-        }
-
-        Properties props = new Properties();
-        props.setProperty(PROP_PARENT, parent.getPath().getAbsolutePath());
-
-        File pbrcFile = new File(dir, DOT_PB + "/" + PBRC);
-        try {
-            //parentFile.createNewFile();
-            FileOutputStream out = new FileOutputStream(pbrcFile);
-            props.store(out, null);
-            out.close();
-        } catch (IOException ex) {
-            throw new PbException("Failed to create " + pbrcFile);
-        }
-
-        return new LocalRepository(dir);
     }
 
     public static LocalRepository open(File dir) throws PbException {

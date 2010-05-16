@@ -35,6 +35,7 @@ public class ChangelogTest {
         assertTrue(changelog.getHeads().isEmpty());
 
         Changelog.Builder builder = changelog.newBuilder();
+        builder.id("1234567890123456789012345678901234567890");
         builder.primaryParent(Changeset.NULL).author("Alexey").comment("test");
         Changeset changeset = builder.writeChangeset();
         builder.close();
