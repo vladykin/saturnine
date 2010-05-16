@@ -31,6 +31,8 @@ public class CloneCommand implements PbCommand {
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }
-        LocalRepository dest = LocalRepository.createClone(source, new File(args[1]));
+
+        LocalRepository dest = LocalRepository.create(new File(args[1]));
+        PullCommand.pull(source, dest);
     }
 }
