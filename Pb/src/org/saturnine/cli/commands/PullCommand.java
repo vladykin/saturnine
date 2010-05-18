@@ -2,8 +2,11 @@ package org.saturnine.cli.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
@@ -13,6 +16,7 @@ import org.saturnine.local.Changelog;
 import org.saturnine.local.DirState;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -67,8 +71,9 @@ public class PullCommand implements PbCommand {
                 return;
             }
 
-            transplantDiffs(parentDirlog, childDirlog, newChangesets);
+            DirDiff totalDiff = transplantDiffs(parentDirlog, childDirlog, newChangesets);
             transplantChangesets(parentChangelog, childChangelog, newChangesets);
+            transplantFiles(parent, child, totalDiff);
 
             String tip = newChangesets.get(newChangesets.size() - 1);
             DirState dirstate = child.getDirState();
@@ -81,10 +86,11 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static void transplantDiffs(Dirlog src, Dirlog dst, List<String> ids) throws IOException {
+    private static DirDiff transplantDiffs(Dirlog src, Dirlog dst, List<String> ids) throws IOException {
         Dirlog.Reader reader = src.newReader();
         Dirlog.Builder builder = dst.newBuilder();
         try {
+            DirDiff totalDiff = null;
             int expectedIdPos = 0;
             while (expectedIdPos < ids.size()) {
                 DirDiff diff = reader.next();
@@ -92,6 +98,11 @@ public class PullCommand implements PbCommand {
                     throw new IOException("Reached eof while looking for " + ids.get(expectedIdPos));
                 }
                 if (diff.newState().equals(ids.get(expectedIdPos))) {
+                    if (totalDiff == null) {
+                        totalDiff = diff;
+                    } else {
+                        totalDiff = totalDiff.merge(diff);
+                    }
                     ++expectedIdPos;
                     builder.oldState(diff.oldState());
                     builder.newState(diff.newState());
@@ -107,6 +118,7 @@ public class PullCommand implements PbCommand {
                     builder.writeDiff();
                 }
             }
+            return totalDiff;
         } finally {
             reader.close();
             builder.close();
@@ -137,6 +149,33 @@ public class PullCommand implements PbCommand {
         } finally {
             reader.close();
             builder.close();
+        }
+    }
+
+    private static void transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
+        for (Map.Entry<String, FileInfo> entry : totalDiff.addedFiles().entrySet()) {
+            transplantFile(parent, child, entry.getKey(), entry.getValue().lastModified());
+        }
+        for (Map.Entry<String, FileInfo> entry : totalDiff.modifiedFiles().entrySet()) {
+            transplantFile(parent, child, entry.getKey(), entry.getValue().lastModified());
+        }
+        for (String removedFile : totalDiff.removedFiles()) {
+            FileUtil.delete(new File(child.getPath(), removedFile));
+        }
+    }
+
+    private static void transplantFile(LocalRepository parent, LocalRepository child, String path, long lastModified) throws IOException {
+        InputStream inputStream = parent.getFileInputStream(path);
+        try {
+            OutputStream outputStream = child.getFileOutputStream(path);
+            try {
+                FileUtil.copy(inputStream, outputStream);
+                child.setFileLastModified(path, lastModified);
+            } finally {
+                outputStream.close();
+            }
+        } finally {
+            inputStream.close();
         }
     }
 }

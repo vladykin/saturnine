@@ -2,8 +2,11 @@ package org.saturnine.local;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 import org.saturnine.api.FileInfo;
 import org.saturnine.api.PbException;
@@ -27,6 +30,8 @@ public class LocalRepository implements Repository {
     public static final String PROP_PARENT = "parent";
 
     public static LocalRepository create(File dir) throws PbException {
+        dir.mkdirs();
+
         String[] content = dir.list();
         if (content == null) {
             throw new PbException("Failed to open directory " + dir);
@@ -157,6 +162,18 @@ public class LocalRepository implements Repository {
         } else {
             throw new IOException("File " + file + " does not exist");
         }
+    }
+
+    public InputStream getFileInputStream(String path) throws IOException {
+        return new FileInputStream(new File(dir, path));
+    }
+
+    public OutputStream getFileOutputStream(String path) throws IOException {
+        return new FileOutputStream(new File(dir, path));
+    }
+
+    public void setFileLastModified(String path, long lastModified) {
+        new File(dir, path).setLastModified(lastModified);
     }
 
     /*package*/ static class PbFileFilter implements FilenameFilter {

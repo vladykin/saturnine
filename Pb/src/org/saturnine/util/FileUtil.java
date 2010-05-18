@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author Alexey Vladykin
@@ -64,31 +66,32 @@ public class FileUtil {
             }
         } else {
             //This was not a directory, so lets just copy the file
-            FileInputStream fin = null;
-            FileOutputStream fout = null;
-            byte[] buffer = new byte[4096]; //Buffer 4K at a time (you can change this).
-            int bytesRead;
             try {
-                //open the files for input and output
-                fin = new FileInputStream(src);
-                fout = new FileOutputStream(dest);
-                //while bytesRead indicates a successful read, lets write...
-                while ((bytesRead = fin.read(buffer)) >= 0) {
-                    fout.write(buffer, 0, bytesRead);
-                }
+                copy(new FileInputStream(src), new FileOutputStream(dest));
             } catch (IOException e) { //Error copying file...
                 IOException wrapper = new IOException("copyFiles: Unable to copy file: "
                         + src.getAbsolutePath() + "to" + dest.getAbsolutePath() + ".");
                 wrapper.initCause(e);
                 wrapper.setStackTrace(e.getStackTrace());
                 throw wrapper;
-            } finally { //Ensure that the files are closed (if they were open).
-                if (fin != null) {
-                    fin.close();
-                }
-                if (fout != null) {
-                    fout.close();
-                }
+            }
+        }
+    }
+
+    public static void copy(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte[] buffer = new byte[4096]; //Buffer 4K at a time (you can change this).
+        int bytesRead;
+        try {
+            //while bytesRead indicates a successful read, lets write...
+            while ((bytesRead = inputStream.read(buffer)) >= 0) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } finally { //Ensure that the files are closed (if they were open).
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            if (outputStream != null) {
+                outputStream.close();
             }
         }
     }
