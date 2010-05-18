@@ -29,7 +29,7 @@ public final class FileInfo {
         return size;
     }
 
-    public int mode() {
+    public short mode() {
         return mode;
     }
 

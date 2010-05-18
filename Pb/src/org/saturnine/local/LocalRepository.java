@@ -172,8 +172,8 @@ public class LocalRepository implements Repository {
         return new FileOutputStream(new File(dir, path));
     }
 
-    public void setFileLastModified(String path, long lastModified) {
-        new File(dir, path).setLastModified(lastModified);
+    public long getFileLastModified(String path) {
+        return new File(dir, path).lastModified();
     }
 
     /*package*/ static class PbFileFilter implements FilenameFilter {

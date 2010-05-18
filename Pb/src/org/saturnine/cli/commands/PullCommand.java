@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.saturnine.api.Changeset;
@@ -73,12 +74,22 @@ public class PullCommand implements PbCommand {
 
             DirDiff totalDiff = transplantDiffs(parentDirlog, childDirlog, newChangesets);
             transplantChangesets(parentChangelog, childChangelog, newChangesets);
-            transplantFiles(parent, child, totalDiff);
+            Map<String, Long> timestamps = transplantFiles(parent, child, totalDiff);
 
             String tip = newChangesets.get(newChangesets.size() - 1);
+            Map<String, FileInfo> fileInfos = childDirlog.state(tip);
+            for (Map.Entry<String, FileInfo> entry : fileInfos.entrySet()) {
+                Long timestamp = timestamps.get(entry.getKey());
+                if (timestamp != null) {
+                    FileInfo oldInfo = entry.getValue();
+                    FileInfo newInfo = new FileInfo(oldInfo.path(), oldInfo.size(), oldInfo.mode(), timestamp, oldInfo.checksum());
+                    entry.setValue(newInfo);
+                }
+            }
+
             DirState dirstate = child.getDirState();
             DirState.Builder dirstateBuilder = dirstate.newBuilder(false);
-            dirstateBuilder.knownFiles(childDirlog.state(tip));
+            dirstateBuilder.knownFiles(fileInfos);
             dirstateBuilder.close();
 
         } catch (IOException ex) {
@@ -152,25 +163,27 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static void transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
+    private static Map<String, Long> transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
+        Map<String, Long> timestamps = new HashMap<String, Long>();
         for (Map.Entry<String, FileInfo> entry : totalDiff.addedFiles().entrySet()) {
-            transplantFile(parent, child, entry.getKey(), entry.getValue().lastModified());
+            timestamps.put(entry.getKey(), transplantFile(parent, child, entry.getKey()));
         }
         for (Map.Entry<String, FileInfo> entry : totalDiff.modifiedFiles().entrySet()) {
-            transplantFile(parent, child, entry.getKey(), entry.getValue().lastModified());
+            timestamps.put(entry.getKey(), transplantFile(parent, child, entry.getKey()));
         }
         for (String removedFile : totalDiff.removedFiles()) {
             FileUtil.delete(new File(child.getPath(), removedFile));
         }
+        return timestamps;
     }
 
-    private static void transplantFile(LocalRepository parent, LocalRepository child, String path, long lastModified) throws IOException {
+    private static long transplantFile(LocalRepository parent, LocalRepository child, String path) throws IOException {
         InputStream inputStream = parent.getFileInputStream(path);
         try {
             OutputStream outputStream = child.getFileOutputStream(path);
             try {
                 FileUtil.copy(inputStream, outputStream);
-                child.setFileLastModified(path, lastModified);
+                return child.getFileLastModified(path);
             } finally {
                 outputStream.close();
             }
