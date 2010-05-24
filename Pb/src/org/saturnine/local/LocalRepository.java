@@ -154,11 +154,4 @@ public class LocalRepository implements Repository {
         }
         return changelog;
     }
-
-    /*package*/ static class PbFileFilter implements FilenameFilter {
-        @Override
-        public boolean accept(File dir, String name) {
-            return !DOT_PB.equals(name);
-        }
-    }
 }
