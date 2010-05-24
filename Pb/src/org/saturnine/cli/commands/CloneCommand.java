@@ -25,7 +25,7 @@ public class CloneCommand implements PbCommand {
     public void execute(String[] args) throws PbException {
         LocalRepository source = LocalRepository.open(new File(args[0]));
         try {
-            if (!source.getDirState().snapshot().scanDir().isClean()) {
+            if (!source.getWorkDir().scan().isClean()) {
                 throw new PbException("Uncommitted changes in source repository");
             }
         } catch (IOException ex) {

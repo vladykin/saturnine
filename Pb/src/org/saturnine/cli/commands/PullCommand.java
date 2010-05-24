@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.saturnine.api.Changeset;
@@ -14,9 +13,9 @@ import org.saturnine.api.FileInfo;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.Changelog;
-import org.saturnine.local.DirState;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.local.WorkDir;
 import org.saturnine.util.FileUtil;
 
 /**
@@ -74,23 +73,13 @@ public class PullCommand implements PbCommand {
 
             DirDiff totalDiff = transplantDiffs(parentDirlog, childDirlog, newChangesets);
             transplantChangesets(parentChangelog, childChangelog, newChangesets);
-            Map<String, Long> timestamps = transplantFiles(parent, child, totalDiff);
+            transplantFiles(parent, child, totalDiff);
 
             String tip = newChangesets.get(newChangesets.size() - 1);
             Map<String, FileInfo> fileInfos = childDirlog.state(tip);
-            for (Map.Entry<String, FileInfo> entry : fileInfos.entrySet()) {
-                Long timestamp = timestamps.get(entry.getKey());
-                if (timestamp != null) {
-                    FileInfo oldInfo = entry.getValue();
-                    FileInfo newInfo = new FileInfo(oldInfo.path(), oldInfo.size(), oldInfo.mode(), timestamp, oldInfo.checksum());
-                    entry.setValue(newInfo);
-                }
-            }
 
-            DirState dirstate = child.getDirState();
-            DirState.Builder dirstateBuilder = dirstate.newBuilder(false);
-            dirstateBuilder.knownFiles(fileInfos);
-            dirstateBuilder.close();
+            WorkDir workdir = child.getWorkDir();
+            workdir.recordFileAttrs(fileInfos.keySet());
 
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
@@ -163,27 +152,24 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static Map<String, Long> transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
-        Map<String, Long> timestamps = new HashMap<String, Long>();
+    private static void transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
         for (Map.Entry<String, FileInfo> entry : totalDiff.addedFiles().entrySet()) {
-            timestamps.put(entry.getKey(), transplantFile(parent, child, entry.getKey()));
+            transplantFile(parent, child, entry.getKey());
         }
         for (Map.Entry<String, FileInfo> entry : totalDiff.modifiedFiles().entrySet()) {
-            timestamps.put(entry.getKey(), transplantFile(parent, child, entry.getKey()));
+            transplantFile(parent, child, entry.getKey());
         }
         for (String removedFile : totalDiff.removedFiles()) {
             FileUtil.delete(new File(child.getPath(), removedFile));
         }
-        return timestamps;
     }
 
-    private static long transplantFile(LocalRepository parent, LocalRepository child, String path) throws IOException {
+    private static void transplantFile(LocalRepository parent, LocalRepository child, String path) throws IOException {
         InputStream inputStream = parent.getFileInputStream(path);
         try {
             OutputStream outputStream = child.getFileOutputStream(path);
             try {
                 FileUtil.copy(inputStream, outputStream);
-                return child.getFileLastModified(path);
             } finally {
                 outputStream.close();
             }

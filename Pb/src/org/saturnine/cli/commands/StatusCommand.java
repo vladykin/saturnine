@@ -26,8 +26,8 @@ public class StatusCommand implements PbCommand {
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.find(new File("."));
         try {
-            DirScanResult workDirState = repository.getDirState().snapshot().scanDir();
-            for (String path : workDirState.getAddedFiles()) {
+            DirScanResult workDirState = repository.getWorkDir().scan();
+            for (String path : workDirState.getAddedFiles().keySet()) {
                 System.out.println("A " + path);
             }
             for (String path : workDirState.getRemovedFiles()) {

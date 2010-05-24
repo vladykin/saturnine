@@ -59,7 +59,7 @@ public class LocalRepository implements Repository {
 
             File dirstateFile = new File(metadataDir, DIRSTATE);
             try {
-                DirState dirstate = DirState.create(dirstateFile, dir);
+                WorkDir workdir = WorkDir.create(dirstateFile, dir);
             } catch (IOException ex) {
                 throw new PbException("Failed to create " + dirstateFile);
             }
@@ -92,7 +92,7 @@ public class LocalRepository implements Repository {
     private final File dir;
     private Changelog changelog;
     private Dirlog dirlog;
-    private DirState dirstate;
+    private WorkDir workdir;
 
     private LocalRepository(File dir) {
         this.dir = dir;
@@ -122,15 +122,15 @@ public class LocalRepository implements Repository {
         return props.getProperty(key);
     }
 
-    public DirState getDirState() throws PbException {
-        if (dirstate == null) {
+    public WorkDir getWorkDir() throws PbException {
+        if (workdir == null) {
             try {
-                dirstate = DirState.open(metadataFile(DIRSTATE), dir);
+                workdir = WorkDir.open(metadataFile(DIRSTATE), dir);
             } catch (IOException ex) {
                 throw new PbException("IOException", ex);
             }
         }
-        return dirstate;
+        return workdir;
     }
 
     public Dirlog getDirlog() throws PbException {
