@@ -2,8 +2,6 @@ package org.saturnine.local;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,11 +10,12 @@ import java.util.Set;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
+import org.saturnine.local.DirState.FileAttrs;
 
 /**
  * @author Alexey Vladykin
  */
-public class DataIO {
+/*package*/ class DataIO {
 
     private DataIO() {
     }
@@ -36,6 +35,38 @@ public class DataIO {
         outputStream.writeShort(fileInfo.mode());
         outputStream.writeLong(fileInfo.lastModified());
         outputStream.writeUTF(fileInfo.checksum());
+    }
+
+    public static FileAttrs readFileAttrs(DataInputStream inputStream) throws IOException {
+        short mode = inputStream.readShort();
+        long size = inputStream.readLong();
+        long timestamp = inputStream.readLong();
+        return new FileAttrs(mode, size, timestamp);
+    }
+
+    public static void writeFileAttrs(DataOutputStream outputStream, FileAttrs fileAttrs) throws IOException {
+        outputStream.writeShort(fileAttrs.mode());
+        outputStream.writeLong(fileAttrs.size());
+        outputStream.writeLong(fileAttrs.timestamp());
+    }
+
+    public static Map<String, FileAttrs> readFileAttrsMap(DataInputStream inputStream) throws IOException {
+        int size = inputStream.readInt();
+        Map<String, FileAttrs> map = new HashMap<String, FileAttrs>(3 * size / 2);
+        for (int i = 0; i < size; ++i) {
+            String path = inputStream.readUTF();
+            FileAttrs fileAttrs = readFileAttrs(inputStream);
+            map.put(path, fileAttrs);
+        }
+        return map;
+    }
+
+    public static void writeFileAttrsMap(DataOutputStream outputStream, Map<String, FileAttrs> map) throws IOException {
+        outputStream.writeInt(map.size());
+        for (Map.Entry<String, FileAttrs> entry : map.entrySet()) {
+            outputStream.writeUTF(entry.getKey());
+            writeFileAttrs(outputStream, entry.getValue());
+        }
     }
 
     public static Map<String, FileInfo> readFileInfoMap(DataInputStream inputStream) throws IOException {
@@ -75,7 +106,9 @@ public class DataIO {
         int size = inputStream.readInt();
         Map<String, String> map = new HashMap<String, String>(3 * size / 2);
         for (int i = 0; i < size; ++i) {
-            map.put(inputStream.readUTF(), inputStream.readUTF());
+            String key = inputStream.readUTF();
+            String value = inputStream.readUTF();
+            map.put(key, value.equals("")? null : value);
         }
         return map;
     }
@@ -84,7 +117,7 @@ public class DataIO {
         outputStream.writeInt(map.size());
         for (Map.Entry<String, String> entry : map.entrySet()) {
             outputStream.writeUTF(entry.getKey());
-            outputStream.writeUTF(entry.getValue());
+            outputStream.writeUTF(entry.getValue() == null? "" : entry.getValue());
         }
     }
 

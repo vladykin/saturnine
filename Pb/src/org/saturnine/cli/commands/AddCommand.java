@@ -3,11 +3,10 @@ package org.saturnine.cli.commands;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.api.PbException;
-import org.saturnine.local.DirState;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.local.WorkDir;
 
 /**
  * @author Alexey Vladykin
@@ -27,11 +26,9 @@ public class AddCommand implements PbCommand {
     @Override
     public void execute(String[] args) throws PbException {
         LocalRepository repository = LocalRepository.find(new File("."));
-        DirState dirstate = repository.getDirState();
+        WorkDir workdir = repository.getWorkDir();
         try {
-            DirState.Builder builder = dirstate.newBuilder(true);
-            builder.addedFiles(new HashSet<String>(Arrays.asList(args)));
-            builder.close();
+            workdir.addFiles(Arrays.asList(args));
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }

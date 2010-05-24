@@ -20,7 +20,7 @@ public class FileUtil {
     }
 
     public static void delete(File file) throws IOException {
-        if (!file.delete()) {
+        if (!file.delete() && file.exists()) {
             throw new IOException("Failed to delete " + file);
         }
     }
