@@ -1,12 +1,16 @@
 package org.saturnine.local;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.saturnine.api.FileInfo;
 import org.saturnine.local.DirState.FileAttrs;
 import org.saturnine.util.FileUtil;
 
@@ -32,6 +36,15 @@ public class WorkDir {
         }
         this.basedir = basedir;
         this.dirstate = create? DirState.create(dirstate) : DirState.open(dirstate);
+    }
+
+    public InputStream readFile(String path) throws IOException {
+        return new FileInputStream(new File(basedir, path));
+    }
+
+    public void writeFile(String path, InputStream inputStream) throws IOException {
+        FileOutputStream outputStream = new FileOutputStream(new File(basedir, path));
+        FileUtil.copy(inputStream, outputStream);
     }
 
     public void addFiles(Collection<String> paths) throws IOException {
@@ -111,6 +124,15 @@ public class WorkDir {
         missing.removeAll(uncertain);
 
         return new DirScanResult(state.addedFiles(), state.removedFiles(), clean, missing, modified, uncertain, untracked);
+    }
+
+    public FileInfo fileInfo(String path) throws IOException {
+        File file = new File(basedir, path);
+        if (file.exists()) {
+            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), "01234567890123456789");
+        } else {
+            throw new IOException("File " + file + " does not exist");
+        }
     }
 
     /*package*/ void setState(DirState.State state) throws IOException {
