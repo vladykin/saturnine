@@ -2,8 +2,6 @@ package org.saturnine.cli.commands;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +14,6 @@ import org.saturnine.local.Changelog;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
-import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -73,7 +70,7 @@ public class PullCommand implements PbCommand {
 
             DirDiff totalDiff = transplantDiffs(parentDirlog, childDirlog, newChangesets);
             transplantChangesets(parentChangelog, childChangelog, newChangesets);
-            transplantFiles(parent, child, totalDiff);
+            transplantFiles(parent.getWorkDir(), child.getWorkDir(), totalDiff);
 
             String tip = newChangesets.get(newChangesets.size() - 1);
             Map<String, FileInfo> fileInfos = childDirlog.state(tip);
@@ -152,29 +149,17 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static void transplantFiles(LocalRepository parent, LocalRepository child, DirDiff totalDiff) throws IOException {
+    private static void transplantFiles(WorkDir parent, WorkDir child, DirDiff totalDiff) throws IOException {
         for (Map.Entry<String, FileInfo> entry : totalDiff.addedFiles().entrySet()) {
             transplantFile(parent, child, entry.getKey());
         }
         for (Map.Entry<String, FileInfo> entry : totalDiff.modifiedFiles().entrySet()) {
             transplantFile(parent, child, entry.getKey());
         }
-        for (String removedFile : totalDiff.removedFiles()) {
-            FileUtil.delete(new File(child.getPath(), removedFile));
-        }
+        child.removeFiles(totalDiff.removedFiles());
     }
 
-    private static void transplantFile(LocalRepository parent, LocalRepository child, String path) throws IOException {
-        InputStream inputStream = parent.getFileInputStream(path);
-        try {
-            OutputStream outputStream = child.getFileOutputStream(path);
-            try {
-                FileUtil.copy(inputStream, outputStream);
-            } finally {
-                outputStream.close();
-            }
-        } finally {
-            inputStream.close();
-        }
+    private static void transplantFile(WorkDir parent, WorkDir child, String path) throws IOException {
+        child.writeFile(path, parent.readFile(path));
     }
 }

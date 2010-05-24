@@ -155,27 +155,6 @@ public class LocalRepository implements Repository {
         return changelog;
     }
 
-    public FileInfo fileInfo(String path) throws IOException {
-        File file = new File(dir, path);
-        if (file.exists()) {
-            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), "01234567890123456789");
-        } else {
-            throw new IOException("File " + file + " does not exist");
-        }
-    }
-
-    public InputStream getFileInputStream(String path) throws IOException {
-        return new FileInputStream(new File(dir, path));
-    }
-
-    public OutputStream getFileOutputStream(String path) throws IOException {
-        return new FileOutputStream(new File(dir, path));
-    }
-
-    public long getFileLastModified(String path) {
-        return new File(dir, path).lastModified();
-    }
-
     /*package*/ static class PbFileFilter implements FilenameFilter {
         @Override
         public boolean accept(File dir, String name) {

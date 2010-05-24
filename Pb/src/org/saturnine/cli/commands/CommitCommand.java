@@ -55,14 +55,14 @@ public class CommitCommand implements PbCommand {
             dirlogBuilder.oldState(primaryParent.id());
             for (Map.Entry<String, String> entry : scanResult.getAddedFiles().entrySet()) {
                 String addedPath = entry.getKey();
-                dirlogBuilder.addedFile(repository.fileInfo(addedPath));
+                dirlogBuilder.addedFile(workdir.fileInfo(addedPath));
                 String origin = entry.getValue();
                 if (origin != null) {
                     dirlogBuilder.origin(addedPath, origin);
                 }
             }
             for (String modifiedFile : scanResult.getModifiedFiles()) {
-                dirlogBuilder.modifiedFile(repository.fileInfo(modifiedFile));
+                dirlogBuilder.modifiedFile(workdir.fileInfo(modifiedFile));
             }
             for (String removedFile : scanResult.getRemovedFiles()) {
                 dirlogBuilder.removedFile(removedFile);
