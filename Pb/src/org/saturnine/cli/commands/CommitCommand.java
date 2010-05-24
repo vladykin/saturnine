@@ -44,15 +44,15 @@ public class CommitCommand implements PbCommand {
 
             Changelog changelog = repository.getChangelog();
             Collection<Changeset> heads = changelog.getHeads();
-            if (heads.size() != 1) {
+            if (1 < heads.size()) {
                 System.out.println("Too many heads");
                 return;
             }
-            Changeset primaryParent = heads.iterator().next();
+            String primaryParent = heads.isEmpty()? Changeset.NULL : heads.iterator().next().id();
 
             Dirlog dirlog = repository.getDirlog();
             Dirlog.Builder dirlogBuilder = dirlog.newBuilder();
-            dirlogBuilder.oldState(primaryParent.id());
+            dirlogBuilder.oldState(primaryParent);
             for (Map.Entry<String, String> entry : scanResult.getAddedFiles().entrySet()) {
                 String addedPath = entry.getKey();
                 dirlogBuilder.addedFile(workdir.fileInfo(addedPath));
@@ -72,7 +72,7 @@ public class CommitCommand implements PbCommand {
 
             Changelog.Builder changelogBuilder = changelog.newBuilder();
             changelogBuilder.id(diff.newState());
-            changelogBuilder.primaryParent(primaryParent.id());
+            changelogBuilder.primaryParent(primaryParent);
             changelogBuilder.secondaryParent(Changeset.NULL);
             changelogBuilder.author(System.getProperty("user.name"));
             changelogBuilder.comment("no comment");

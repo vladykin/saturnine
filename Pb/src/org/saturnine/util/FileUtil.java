@@ -15,6 +15,16 @@ public class FileUtil {
     private FileUtil() {
     }
 
+    public static String joinPath(String basedir, String path) {
+        if (basedir.isEmpty()) {
+            return path;
+        } else if (path.isEmpty()) {
+            return basedir;
+        } else {
+            return basedir + '/' + path;
+        }
+    }
+
     public static void empty(File file) throws IOException {
         new FileOutputStream(file).close();
     }

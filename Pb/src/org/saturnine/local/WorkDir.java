@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +17,9 @@ import org.saturnine.local.DirState.FileAttrs;
 import org.saturnine.util.FileUtil;
 
 /**
+ * Provides access to the working directory in the filesystem.
+ * Working directory contains repository checkout at specific revision.
+ *
  * @author Alexey Vladykin
  */
 public class WorkDir {
@@ -38,22 +43,41 @@ public class WorkDir {
         this.dirstate = create? DirState.create(dirstate) : DirState.open(dirstate);
     }
 
+    private File file(String path) {
+        return new File(basedir, path);
+    }
+
     public InputStream readFile(String path) throws IOException {
-        return new FileInputStream(new File(basedir, path));
+        return new FileInputStream(file(path));
     }
 
     public void writeFile(String path, InputStream inputStream) throws IOException {
-        FileOutputStream outputStream = new FileOutputStream(new File(basedir, path));
+        FileOutputStream outputStream = new FileOutputStream(file(path));
         FileUtil.copy(inputStream, outputStream);
     }
 
     public void addFiles(Collection<String> paths) throws IOException {
         DirState.State state = dirstate.getState();
-        for (String addedPath : paths) {
-            state.removedFiles().remove(addedPath);
-            state.addedFiles().put(addedPath, null);
-        }
+        addFilesImpl(state, "", paths);
         dirstate.setState(state);
+    }
+
+    private void addFilesImpl(DirState.State state, String base, Collection<String> paths) throws IOException {
+        for (String path : paths) {
+            String fullPath = FileUtil.joinPath(base, path);
+            File file = file(fullPath);
+            if (file.isDirectory()) {
+                addFilesImpl(state, fullPath, Arrays.asList(file.list(PB_FILTER)));
+            } else if (file.isFile()) {
+                if (!state.knownFiles().containsKey(fullPath) &&
+                        !state.addedFiles().containsKey(fullPath)) {
+                    state.addedFiles().put(fullPath, null);
+                }
+                state.removedFiles().remove(fullPath);
+            } else {
+                throw new IOException(fullPath + ": file does not exist");
+            }
+        }
     }
 
     public void copyFiles(Collection<String> paths) throws IOException {
@@ -63,7 +87,7 @@ public class WorkDir {
         Iterator<String> it = paths.iterator();
         String src = it.next();
         String dst = it.next();
-        FileUtil.copyFiles(new File(basedir, src), new File(basedir, dst));
+        FileUtil.copyFiles(file(src), file(dst));
 
         DirState.State state = dirstate.getState();
         state.addedFiles().put(dst, src);
@@ -77,7 +101,7 @@ public class WorkDir {
         Iterator<String> it = paths.iterator();
         String src = it.next();
         String dst = it.next();
-        FileUtil.rename(new File(basedir, src), new File(basedir, dst));
+        FileUtil.rename(file(src), file(dst));
 
         DirState.State state = dirstate.getState();
         state.removedFiles().add(src);
@@ -88,7 +112,7 @@ public class WorkDir {
     public void removeFiles(Collection<String> paths) throws IOException {
         DirState.State state = dirstate.getState();
         for (String removedPath : paths) {
-            FileUtil.delete(new File(basedir, removedPath));
+            FileUtil.delete(file(removedPath));
             state.addedFiles().remove(removedPath);
             state.removedFiles().add(removedPath);
         }
@@ -99,7 +123,7 @@ public class WorkDir {
         // also clears all added/copied/removed info
         DirState.State state = new DirState.State();
         for (String path : paths) {
-            File file = new File(basedir, path);
+            File file = file(path);
             if (!file.exists()) {
                 throw new FileNotFoundException(file.getPath());
             }
@@ -127,7 +151,7 @@ public class WorkDir {
     }
 
     public FileInfo fileInfo(String path) throws IOException {
-        File file = new File(basedir, path);
+        File file = file(path);
         if (file.exists()) {
             return new FileInfo(path, file.length(), (short)0644, file.lastModified(), "01234567890123456789");
         } else {
@@ -140,7 +164,7 @@ public class WorkDir {
     }
 
     private void collectFileChanges(File dir, DirState.State state, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked) {
-        File[] children = dir.listFiles(new LocalRepository.PbFileFilter());
+        File[] children = dir.listFiles(PB_FILTER);
         for (File f : children) {
             if (f.isDirectory()) {
                 collectFileChanges(f, state, clean, modified, uncertain, untracked);
@@ -165,4 +189,11 @@ public class WorkDir {
             }
         }
     }
+
+    private static final FilenameFilter PB_FILTER = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return !LocalRepository.DOT_PB.equals(name);
+        }
+    };
 }
