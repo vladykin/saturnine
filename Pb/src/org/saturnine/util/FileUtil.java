@@ -26,7 +26,10 @@ public class FileUtil {
     }
 
     public static String normalizePath(String path) {
-        return path.replaceAll("//+", "/");
+        return path.replaceAll("/\\./", "/")
+                .replaceAll("^\\.?/+", "")
+                .replaceAll("/+\\.?$", "")
+                .replaceAll("//+", "/");
     }
 
     public static void empty(File file) throws IOException {
