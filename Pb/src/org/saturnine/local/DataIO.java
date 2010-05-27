@@ -105,8 +105,8 @@ import org.saturnine.local.DirState.FileAttrs;
         Map<String, String> map = new HashMap<String, String>(3 * size / 2);
         for (int i = 0; i < size; ++i) {
             String key = inputStream.readUTF();
-            String value = inputStream.readUTF();
-            map.put(key, value.equals("")? null : value);
+            String value = readStringOrNull(inputStream);
+            map.put(key, value);
         }
         return map;
     }
@@ -115,7 +115,7 @@ import org.saturnine.local.DirState.FileAttrs;
         outputStream.writeInt(map.size());
         for (Map.Entry<String, String> entry : map.entrySet()) {
             outputStream.writeUTF(entry.getKey());
-            outputStream.writeUTF(entry.getValue() == null? "" : entry.getValue());
+            writeStringOrNull(outputStream, entry.getValue());
         }
     }
 
@@ -141,10 +141,7 @@ import org.saturnine.local.DirState.FileAttrs;
     public static Changeset readChangeset(DataInputStream inputStream) throws IOException {
         String id = inputStream.readUTF();
         String primaryParent = inputStream.readUTF();
-        String secondaryParent = inputStream.readUTF();
-        if (secondaryParent.isEmpty()) {
-            secondaryParent = null;
-        }
+        String secondaryParent = readStringOrNull(inputStream);
         String author = inputStream.readUTF();
         String comment = inputStream.readUTF();
         long timestamp = inputStream.readLong();
@@ -154,13 +151,26 @@ import org.saturnine.local.DirState.FileAttrs;
     public static void writeChangeset(DataOutputStream outputStream, Changeset changeset) throws IOException {
         outputStream.writeUTF(changeset.id());
         outputStream.writeUTF(changeset.primaryParent());
-        if (changeset.secondaryParent() != null) {
-            outputStream.writeUTF(changeset.secondaryParent());
-        } else {
-            outputStream.writeUTF("");
-        }
+        writeStringOrNull(outputStream, changeset.secondaryParent());
         outputStream.writeUTF(changeset.author());
         outputStream.writeUTF(changeset.comment());
         outputStream.writeLong(changeset.timestamp());
+    }
+
+    private static String readStringOrNull(DataInputStream inputStream) throws IOException {
+        if (inputStream.readBoolean()) {
+            return inputStream.readUTF();
+        } else {
+            return null;
+        }
+    }
+
+    private static void writeStringOrNull(DataOutputStream outputStream, String str) throws IOException {
+        if (str == null) {
+            outputStream.writeBoolean(false);
+        } else {
+            outputStream.writeBoolean(true);
+            outputStream.writeUTF(str);
+        }
     }
 }
