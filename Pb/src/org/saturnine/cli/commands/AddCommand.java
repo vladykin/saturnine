@@ -3,6 +3,7 @@ package org.saturnine.cli.commands;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.api.PbException;
 import org.saturnine.local.LocalRepository;
@@ -28,7 +29,7 @@ public class AddCommand implements PbCommand {
         LocalRepository repository = LocalRepository.find(new File("."));
         WorkDir workdir = repository.getWorkDir();
         try {
-            workdir.addFiles(Arrays.asList(args));
+            workdir.addFiles(0 < args.length? Arrays.asList(args) : Collections.singleton(""));
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }
