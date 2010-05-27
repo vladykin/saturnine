@@ -25,6 +25,10 @@ public class FileUtil {
         }
     }
 
+    public static String normalizePath(String path) {
+        return path.replaceAll("//+", "/");
+    }
+
     public static void empty(File file) throws IOException {
         new FileOutputStream(file).close();
     }

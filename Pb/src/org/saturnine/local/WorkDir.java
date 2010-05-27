@@ -65,7 +65,7 @@ public class WorkDir {
 
     private void addFilesImpl(DirState.State state, String base, Collection<String> paths) throws IOException {
         for (String path : paths) {
-            String fullPath = FileUtil.joinPath(base, path);
+            String fullPath = FileUtil.normalizePath(FileUtil.joinPath(base, path));
             File file = file(fullPath);
             if (file.isDirectory()) {
                 addFilesImpl(state, fullPath, Arrays.asList(file.list(PB_FILTER)));
