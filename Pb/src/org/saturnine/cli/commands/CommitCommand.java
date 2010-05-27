@@ -32,6 +32,10 @@ public class CommitCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
+        if (args.length <= 0) {
+            throw new PbException("Please specify commit message");
+        }
+
         LocalRepository repository = LocalRepository.find(new File("."));
         try {
             WorkDir workdir = repository.getWorkDir();
@@ -55,6 +59,7 @@ public class CommitCommand implements PbCommand {
             dirlogBuilder.oldState(primaryParent);
             for (Map.Entry<String, String> entry : scanResult.getAddedFiles().entrySet()) {
                 String addedPath = entry.getKey();
+                System.out.println("Checksumming " + addedPath);
                 dirlogBuilder.addedFile(workdir.fileInfo(addedPath));
                 String origin = entry.getValue();
                 if (origin != null) {
@@ -62,6 +67,7 @@ public class CommitCommand implements PbCommand {
                 }
             }
             for (String modifiedFile : scanResult.getModifiedFiles()) {
+                System.out.println("Checksumming " + modifiedFile);
                 dirlogBuilder.modifiedFile(workdir.fileInfo(modifiedFile));
             }
             for (String removedFile : scanResult.getRemovedFiles()) {
@@ -73,9 +79,9 @@ public class CommitCommand implements PbCommand {
             Changelog.Builder changelogBuilder = changelog.newBuilder();
             changelogBuilder.id(diff.newState());
             changelogBuilder.primaryParent(primaryParent);
-            changelogBuilder.secondaryParent(Changeset.NULL);
-            changelogBuilder.author(System.getProperty("user.name"));
-            changelogBuilder.comment("no comment");
+            //changelogBuilder.secondaryParent(Changeset.NULL);
+            changelogBuilder.author(getAuthor(repository));
+            changelogBuilder.comment(getComment(args));
             changelogBuilder.timestamp(new Date().getTime());
             changelogBuilder.writeChangeset();
             changelogBuilder.close();
@@ -85,5 +91,27 @@ public class CommitCommand implements PbCommand {
         } catch (IOException ex) {
             throw new PbException("IOException", ex);
         }
+    }
+
+    private static String getAuthor(LocalRepository repository) {
+        String author = repository.getProperty(LocalRepository.PROP_USER);
+        if (author == null) {
+            author = System.getProperty("user.name");
+            if (author == null) {
+                author = "Anonymous";
+            }
+        }
+        return author;
+    }
+
+    private static String getComment(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        for (String arg : args) {
+            if (0 < sb.length()) {
+                sb.append(' ');
+            }
+            sb.append(arg);
+        }
+        return sb.toString();
     }
 }

@@ -24,6 +24,11 @@ public class LocalRepository implements Repository {
      */
     public static final String PROP_PARENT = "parent";
 
+    /**
+     * User name to use as commit author.
+     */
+    public static final String PROP_USER = "user";
+
     public static LocalRepository create(File dir) throws PbException {
         dir.mkdirs();
 
