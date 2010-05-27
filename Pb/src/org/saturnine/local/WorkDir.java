@@ -153,7 +153,7 @@ public class WorkDir {
     public FileInfo fileInfo(String path) throws IOException {
         File file = file(path);
         if (file.exists()) {
-            return new FileInfo(path, file.length(), (short)0644, file.lastModified(), "01234567890123456789");
+            return new FileInfo(path, file.length(), (short)0644, "01234567890123456789");
         } else {
             throw new IOException("File " + file + " does not exist");
         }
