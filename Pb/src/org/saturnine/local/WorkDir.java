@@ -53,7 +53,9 @@ public class WorkDir {
     }
 
     public void writeFile(String path, InputStream inputStream) throws IOException {
-        FileOutputStream outputStream = new FileOutputStream(file(path));
+        File file = file(path);
+        file.getParentFile().mkdirs();
+        FileOutputStream outputStream = new FileOutputStream(file);
         FileUtil.copy(inputStream, outputStream);
     }
 
