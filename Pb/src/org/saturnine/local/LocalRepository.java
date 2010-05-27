@@ -2,13 +2,8 @@ package org.saturnine.local;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Properties;
-import org.saturnine.api.FileInfo;
 import org.saturnine.api.PbException;
 import org.saturnine.api.Repository;
 
@@ -32,11 +27,8 @@ public class LocalRepository implements Repository {
     public static LocalRepository create(File dir) throws PbException {
         dir.mkdirs();
 
-        String[] content = dir.list();
-        if (content == null) {
+        if (!dir.isDirectory()) {
             throw new PbException("Failed to open directory " + dir);
-        } else if (0 < content.length) {
-            throw new PbException(dir + " is not empty");
         } else {
             File metadataDir = new File(dir, DOT_PB);
             if (!metadataDir.mkdir()) {
