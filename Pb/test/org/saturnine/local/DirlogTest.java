@@ -1,7 +1,6 @@
 package org.saturnine.local;
 
 import java.io.File;
-import java.util.Date;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +36,7 @@ public class DirlogTest {
         try {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
-            builder.addedFile(new FileInfo("foo", 123, (short) 0644, new Date().getTime(), "qwerqwer"));
+            builder.addedFile(new FileInfo("foo", 123, (short) 0644, "qwerqwer"));
             diff1 = builder.writeDiff();
         } finally {
             builder.close();
@@ -61,12 +60,12 @@ public class DirlogTest {
         try {
             builder.newState("0123456789012345678901234567890123456789");
             builder.oldState(Changeset.NULL);
-            builder.addedFile(new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer"));
+            builder.addedFile(new FileInfo("foo", 123, (short) 0644, "qwerqwer"));
             builder.writeDiff();
 
             builder.newState("1234567890123456789012345678901234567890");
             builder.oldState("0123456789012345678901234567890123456789");
-            builder.modifiedFile(new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf"));
+            builder.modifiedFile(new FileInfo("foo", 234, (short) 0644, "asdfasdf"));
             builder.writeDiff();
 
             builder.newState("2345678901234567890123456789012345678901");
@@ -79,11 +78,11 @@ public class DirlogTest {
 
         Map<String, FileInfo> state1 = dirlog.state("0123456789012345678901234567890123456789");
         assertEquals(1, state1.size());
-        assertEquals(new FileInfo("foo", 123, (short) 0644, 1000, "qwerqwer"), state1.get("foo"));
+        assertEquals(new FileInfo("foo", 123, (short) 0644, "qwerqwer"), state1.get("foo"));
 
         Map<String, FileInfo> state2 = dirlog.state("1234567890123456789012345678901234567890");
         assertEquals(1, state2.size());
-        assertEquals(new FileInfo("foo", 234, (short) 0644, 2000, "asdfasdf"), state2.get("foo"));
+        assertEquals(new FileInfo("foo", 234, (short) 0644, "asdfasdf"), state2.get("foo"));
 
         Map<String, FileInfo> state3 = dirlog.state("2345678901234567890123456789012345678901");
         assertEquals(0, state3.size());

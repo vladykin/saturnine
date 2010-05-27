@@ -24,16 +24,14 @@ import org.saturnine.local.DirState.FileAttrs;
         String path = inputStream.readUTF();
         long size = inputStream.readLong();
         short mode = inputStream.readShort();
-        long lastModified = inputStream.readLong();
         String checksum = inputStream.readUTF();
-        return new FileInfo(path, size, mode, lastModified, checksum);
+        return new FileInfo(path, size, mode, checksum);
     }
 
     public static void writeFileInfo(DataOutputStream outputStream, FileInfo fileInfo) throws IOException {
         outputStream.writeUTF(fileInfo.path());
         outputStream.writeLong(fileInfo.size());
         outputStream.writeShort(fileInfo.mode());
-        outputStream.writeLong(fileInfo.lastModified());
         outputStream.writeUTF(fileInfo.checksum());
     }
 
