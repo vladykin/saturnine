@@ -18,7 +18,7 @@ public class HashTest {
                     (byte) 0x95, (byte) 0x60, (byte) 0x18, (byte) 0x90,
                     (byte) 0xaf, (byte) 0xd8, (byte) 0x07, (byte) 0x09
                 }, sha1.result());
-        assertEquals("da39a3ee5e6b4b0d3255bfef95601890afd80709", sha1.resultAsHex());
+        assertEquals("da39a3ee5e6b4b0d3255bfef95601890afd80709", sha1.resultAsHex().toString());
     }
 
     @Test
@@ -33,7 +33,7 @@ public class HashTest {
                     (byte) 0xd3, (byte) 0x91, (byte) 0xe9, (byte) 0x87,
                     (byte) 0x98, (byte) 0x2f, (byte) 0xbb, (byte) 0xd3
                 }, sha1.result());
-        assertEquals("a94a8fe5ccb19ba61c4c0873d391e987982fbbd3", sha1.resultAsHex());
+        assertEquals("a94a8fe5ccb19ba61c4c0873d391e987982fbbd3", sha1.resultAsHex().toString());
     }
 
     @Test(expected = IllegalStateException.class)

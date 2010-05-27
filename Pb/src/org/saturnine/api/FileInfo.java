@@ -1,5 +1,7 @@
 package org.saturnine.api;
 
+import org.saturnine.util.HexCharSequence;
+
 /**
  * @author Alexey Vladykin
  */
@@ -8,15 +10,15 @@ public final class FileInfo {
     private final String path;
     private final long size;
     private final short mode;
-    private final String checksum;
+    private final HexCharSequence checksum;
 
     public FileInfo(
             String path, long size, short mode,
-            String checksum) {
+            CharSequence checksum) {
         this.path = path;
         this.size = size;
         this.mode = mode;
-        this.checksum = checksum;
+        this.checksum = HexCharSequence.get(checksum);
     }
 
     public String path() {
@@ -31,7 +33,7 @@ public final class FileInfo {
         return mode;
     }
 
-    public String checksum() {
+    public HexCharSequence checksum() {
         return checksum;
     }
 

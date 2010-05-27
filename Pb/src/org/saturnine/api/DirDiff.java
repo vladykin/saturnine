@@ -4,14 +4,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.saturnine.util.HexCharSequence;
 
 /**
  * @author Alexey Vladykin
  */
 public final class DirDiff {
 
-    private final String newState;
-    private final String oldState;
+    private final HexCharSequence newState;
+    private final HexCharSequence oldState;
     private final Map<String, FileInfo> addedFiles;
     private final Map<String, FileInfo> modifiedFiles;
     private final Set<String> removedFiles;
@@ -30,20 +31,20 @@ public final class DirDiff {
      * @param removedFiles
      * @param origins
      */
-    public DirDiff(String newState, String oldState, Map<String, FileInfo> addedFiles, Map<String, FileInfo> modifiedFiles, Set<String> removedFiles, Map<String, String> origins) {
-        this.newState = newState;
-        this.oldState = oldState;
+    public DirDiff(CharSequence newState, CharSequence oldState, Map<String, FileInfo> addedFiles, Map<String, FileInfo> modifiedFiles, Set<String> removedFiles, Map<String, String> origins) {
+        this.newState = HexCharSequence.get(newState);
+        this.oldState = HexCharSequence.get(oldState);
         this.addedFiles = addedFiles;
         this.modifiedFiles = modifiedFiles;
         this.removedFiles = removedFiles;
         this.origins = origins;
     }
 
-    public String newState() {
+    public HexCharSequence newState() {
         return newState;
     }
 
-    public String oldState() {
+    public HexCharSequence oldState() {
         return oldState;
     }
 

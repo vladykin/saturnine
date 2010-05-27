@@ -16,6 +16,7 @@ import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
 import org.saturnine.util.Hash;
+import org.saturnine.util.HexCharSequence;
 import org.saturnine.util.RecordSet;
 
 /**
@@ -32,11 +33,11 @@ public final class Dirlog {
     }
 
     private final RecordSet recordset;
-    private final Map<String, String> index;
+    private final Map<HexCharSequence, HexCharSequence> index;
 
     private Dirlog(File file, boolean create) throws IOException {
         this.recordset = create ? RecordSet.create(file) : RecordSet.open(file);
-        this.index = new HashMap<String, String>();
+        this.index = new HashMap<HexCharSequence, HexCharSequence>();
         if (!create) {
             rebuildIndex();
         }
@@ -50,11 +51,13 @@ public final class Dirlog {
 //        return null;
 //    }
 
-    public Map<String, FileInfo> state(String id) throws IOException {
-        List<String> ids = new ArrayList<String>();
-        while (!id.equals(Changeset.NULL)) {
-            ids.add(id);
-            id = index.get(id);
+    public Map<String, FileInfo> state(CharSequence id) throws IOException {
+        HexCharSequence hexid = HexCharSequence.get(id);
+
+        List<HexCharSequence> ids = new ArrayList<HexCharSequence>();
+        while (!hexid.equals(Changeset.NULL)) {
+            ids.add(hexid);
+            hexid = index.get(hexid);
         }
         Collections.reverse(ids);
 
@@ -144,8 +147,8 @@ public final class Dirlog {
     public final class Builder {
 
         private final RecordSet.Writer delegate;
-        private String newState;
-        private String oldState;
+        private HexCharSequence newState;
+        private HexCharSequence oldState;
         private Map<String, FileInfo> addedFiles;
         private Map<String, FileInfo> modifiedFiles;
         private Set<String> removedFiles;
@@ -156,13 +159,13 @@ public final class Dirlog {
             setDefaults();
         }
         
-        public Builder newState(String newState) {
-            this.newState = newState;
+        public Builder newState(CharSequence newState) {
+            this.newState = HexCharSequence.get(newState);
             return this;
         }
 
-        public Builder oldState(String oldState) {
-            this.oldState = oldState;
+        public Builder oldState(CharSequence oldState) {
+            this.oldState = HexCharSequence.get(oldState);
             return this;
         }
 
@@ -225,7 +228,7 @@ public final class Dirlog {
             }
         }
 
-        private String generateId() {
+        private HexCharSequence generateId() {
             // TODO: verify that id does not appear in changelog yet
             Hash h = Hash.createSHA1();
             h.update(oldState);

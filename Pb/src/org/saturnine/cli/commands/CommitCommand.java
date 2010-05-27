@@ -14,6 +14,7 @@ import org.saturnine.local.DirScanResult;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
+import org.saturnine.util.HexCharSequence;
 
 /**
  * @author Alexey Vladykin
@@ -52,7 +53,7 @@ public class CommitCommand implements PbCommand {
                 System.out.println("Too many heads");
                 return;
             }
-            String primaryParent = heads.isEmpty()? Changeset.NULL : heads.iterator().next().id();
+            HexCharSequence primaryParent = heads.isEmpty()? Changeset.NULL : heads.iterator().next().id();
 
             Dirlog dirlog = repository.getDirlog();
             Dirlog.Builder dirlogBuilder = dirlog.newBuilder();

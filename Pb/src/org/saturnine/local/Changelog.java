@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.saturnine.api.Changeset;
+import org.saturnine.util.HexCharSequence;
 import org.saturnine.util.RecordSet;
 
 /**
@@ -37,7 +38,7 @@ public final class Changelog {
     public Collection<Changeset> getHeads() throws IOException {
         Changelog.Reader reader = newReader();
         try {
-            Map<String, Changeset> heads = new HashMap<String, Changeset>();
+            Map<HexCharSequence, Changeset> heads = new HashMap<HexCharSequence, Changeset>();
             for (;;) {
                 Changeset changeset = reader.next();
                 if (changeset == null) {
@@ -57,15 +58,16 @@ public final class Changelog {
      * Searches changeset by id. This method is preferred to iterating
      * through {@link #allChangesets()} and comparing ids.
      *
-     * @param changesetId  id of desired changeset
+     * @param id  id of desired changeset
      * @return changeset with given id, or <code>null</code>
      * @throws NullPointerException if changesetId is <code>null</code>
      * @throws IOException if an error occurs
      */
-    public Changeset findChangeset(String changesetId) throws IOException {
-        if (changesetId == null) {
+    public Changeset findChangeset(CharSequence id) throws IOException {
+        if (id == null) {
             throw new NullPointerException("changesetId is null");
         }
+        HexCharSequence hexid = HexCharSequence.get(id);
         // TODO: optimize
         Changelog.Reader reader = newReader();
         try {
@@ -74,7 +76,7 @@ public final class Changelog {
                 if (changeset == null) {
                     break;
                 }
-                if (changeset.id().equals(changesetId)) {
+                if (changeset.id().equals(hexid)) {
                     return changeset;
                 }
             }
@@ -89,13 +91,13 @@ public final class Changelog {
      * {@link #findChangeset(java.lang.String)} and comparing result to
      * <code>null</code>.
      *
-     * @param changesetId  changeset id
+     * @param id  changeset id
      * @return <code>true</code> if changeset exists, <code>false</code> otherwise
      * @throws IOException if an error occurs
      */
-    public boolean hasChangeset(String changesetId) throws IOException {
+    public boolean hasChangeset(CharSequence id) throws IOException {
         // TODO: optimize
-        return findChangeset(changesetId) != null;
+        return findChangeset(id) != null;
     }
 
     /**
@@ -140,9 +142,9 @@ public final class Changelog {
     public final class Builder {
 
         private final RecordSet.Writer delegate;
-        private String id;
-        private String primaryParent;
-        private String secondaryParent;
+        private HexCharSequence id;
+        private HexCharSequence primaryParent;
+        private HexCharSequence secondaryParent;
         private String author;
         private String comment;
         private long timestamp;
@@ -151,18 +153,18 @@ public final class Changelog {
             delegate = recordset.newWriter();
         }
 
-        public Builder id(String id) {
-            this.id = id;
+        public Builder id(CharSequence id) {
+            this.id = HexCharSequence.get(id);
             return this;
         }
 
-        public Builder primaryParent(String secondaryParent) {
-            this.primaryParent = secondaryParent;
+        public Builder primaryParent(CharSequence primaryParent) {
+            this.primaryParent = HexCharSequence.get(primaryParent);
             return this;
         }
 
-        public Builder secondaryParent(String secondaryParent) {
-            this.secondaryParent = secondaryParent;
+        public Builder secondaryParent(CharSequence secondaryParent) {
+            this.secondaryParent = secondaryParent == null ? null : HexCharSequence.get(secondaryParent);
             return this;
         }
 
