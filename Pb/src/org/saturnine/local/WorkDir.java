@@ -15,6 +15,7 @@ import java.util.Set;
 import org.saturnine.api.FileInfo;
 import org.saturnine.local.DirState.FileAttrs;
 import org.saturnine.util.FileUtil;
+import org.saturnine.util.Hash;
 
 /**
  * Provides access to the working directory in the filesystem.
@@ -153,7 +154,9 @@ public class WorkDir {
     public FileInfo fileInfo(String path) throws IOException {
         File file = file(path);
         if (file.exists()) {
-            return new FileInfo(path, file.length(), (short)0644, "01234567890123456789");
+            Hash h = Hash.createSHA1();
+            h.update(file);
+            return new FileInfo(path, file.length(), (short)0644, h.resultAsHex());
         } else {
             throw new IOException("File " + file + " does not exist");
         }

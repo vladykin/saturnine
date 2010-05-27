@@ -1,5 +1,8 @@
 package org.saturnine.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -29,6 +32,11 @@ public final class Hash {
         md.update(buf);
     }
 
+    public void update(byte[] buf, int len) {
+        checkState();
+        md.update(buf, 0, len);
+    }
+
     public void update(String str) {
         checkState();
         try {
@@ -41,6 +49,28 @@ public final class Hash {
 
     public void update(long num) {
         update(String.valueOf(num));
+    }
+
+    private void update(FileInputStream inputStream) throws IOException {
+        byte[] buf = new byte[1 << 14]; // 16K
+        int read;
+        while (0 < (read = inputStream.read(buf))) {
+            update(buf, read);
+        }
+    }
+
+    public void update(File file) throws IOException {
+        long oldSize = file.length();
+        long oldTime = file.lastModified();
+        FileInputStream inputStream = new FileInputStream(file);
+        try {
+            update(inputStream);
+        } finally {
+            inputStream.close();
+        }
+        if (oldSize != file.length() || oldTime != file.lastModified()) {
+            throw new IOException("File " + file + " modified externally");
+        }
     }
 
     public byte[] result() {
