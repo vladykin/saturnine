@@ -14,6 +14,7 @@ import org.saturnine.local.Changelog;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
+import org.saturnine.util.HexCharSequence;
 
 /**
  * @author Alexey Vladykin
@@ -49,7 +50,7 @@ public class PullCommand implements PbCommand {
         Dirlog parentDirlog = parent.getDirlog();
         Changelog childChangelog = child.getChangelog();
         Dirlog childDirlog = child.getDirlog();
-        List<String> newChangesets = new ArrayList<String>();
+        List<HexCharSequence> newChangesets = new ArrayList<HexCharSequence>();
 
         try {
             Changelog.Reader parentChangelogReader = parentChangelog.newReader();
@@ -72,7 +73,7 @@ public class PullCommand implements PbCommand {
             transplantChangesets(parentChangelog, childChangelog, newChangesets);
             transplantFiles(parent.getWorkDir(), child.getWorkDir(), totalDiff);
 
-            String tip = newChangesets.get(newChangesets.size() - 1);
+            HexCharSequence tip = newChangesets.get(newChangesets.size() - 1);
             Map<String, FileInfo> fileInfos = childDirlog.state(tip);
 
             WorkDir workdir = child.getWorkDir();
@@ -83,7 +84,7 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static DirDiff transplantDiffs(Dirlog src, Dirlog dst, List<String> ids) throws IOException {
+    private static DirDiff transplantDiffs(Dirlog src, Dirlog dst, List<HexCharSequence> ids) throws IOException {
         Dirlog.Reader reader = src.newReader();
         Dirlog.Builder builder = dst.newBuilder();
         try {
@@ -122,7 +123,7 @@ public class PullCommand implements PbCommand {
         }
     }
 
-    private static void transplantChangesets(Changelog src, Changelog dst, List<String> ids) throws IOException {
+    private static void transplantChangesets(Changelog src, Changelog dst, List<HexCharSequence> ids) throws IOException {
         Changelog.Reader reader = src.newReader();
         Changelog.Builder builder = dst.newBuilder();
         try {

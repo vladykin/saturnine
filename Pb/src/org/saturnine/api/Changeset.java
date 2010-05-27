@@ -1,40 +1,42 @@
 package org.saturnine.api;
 
+import org.saturnine.util.HexCharSequence;
+
 /**
  * @author Alexey Vladykin
  */
 public final class Changeset {
 
-    public static final String NULL =
-            "0000000000000000000000000000000000000000";
+    public static final HexCharSequence NULL =
+            HexCharSequence.get(new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
 
-    private final String id;
-    private final String primaryParent;
-    private final String secondaryParent;
+    private final HexCharSequence id;
+    private final HexCharSequence primaryParent;
+    private final HexCharSequence secondaryParent;
     private final String author;
     private final String comment;
     private final long timestamp;
 
     public Changeset(
-            String id, String primaryParent, String secondaryParent,
+            CharSequence id, CharSequence primaryParent, CharSequence secondaryParent,
             String author, String comment, long timestamp) {
-        this.id = id;
-        this.primaryParent = primaryParent;
-        this.secondaryParent = secondaryParent;
+        this.id = HexCharSequence.get(id);
+        this.primaryParent = HexCharSequence.get(primaryParent);
+        this.secondaryParent = secondaryParent == null? null : HexCharSequence.get(secondaryParent);
         this.author = author;
         this.comment = comment;
         this.timestamp = timestamp;
     }
 
-    public String id() {
+    public HexCharSequence id() {
         return id;
     }
 
-    public String primaryParent() {
+    public HexCharSequence primaryParent() {
         return primaryParent;
     }
 
-    public String secondaryParent() {
+    public HexCharSequence secondaryParent() {
         return secondaryParent;
     }
 
@@ -52,7 +54,7 @@ public final class Changeset {
 
     @Override
     public String toString() {
-        return id;
+        return id.toString();
     }
 
     @Override

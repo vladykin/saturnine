@@ -47,6 +47,10 @@ public final class Hash {
         }
     }
 
+    public void update(CharSequence cs) {
+        update(cs.toString());
+    }
+
     public void update(long num) {
         update(String.valueOf(num));
     }
@@ -80,13 +84,8 @@ public final class Hash {
         return result;
     }
 
-    public String resultAsHex() {
-        byte[] localResult = result();
-        StringBuilder buf = new StringBuilder(2 * localResult.length);
-        for (byte b : localResult) {
-            buf.append(String.format("%02x", b));
-        }
-        return buf.toString();
+    public HexCharSequence resultAsHex() {
+        return HexCharSequence.get(result());
     }
 
     private void checkState() {

@@ -11,6 +11,7 @@ import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
 import org.saturnine.local.DirState.FileAttrs;
+import org.saturnine.util.HexCharSequence;
 
 /**
  * @author Alexey Vladykin
@@ -20,11 +21,37 @@ import org.saturnine.local.DirState.FileAttrs;
     private DataIO() {
     }
 
+    private static HexCharSequence readHex(DataInputStream inputStream) throws IOException {
+        // assume that length fits in byte
+        byte size = inputStream.readByte();
+        if (size < 0) {
+            return null;
+        } else {
+            byte data[] = new byte[(size + 1) / 2];
+            for (int i = 0; i < data.length; ++i) {
+                data[i] = inputStream.readByte();
+            }
+            return HexCharSequence.get(data, 0, size);
+        }
+    }
+
+    private static void writeHex(DataOutputStream outputStream, HexCharSequence hex) throws IOException {
+        // assume that length fits in byte
+        if (hex == null) {
+            outputStream.writeByte(-1);
+        } else {
+            outputStream.writeByte(hex.length());
+            for (int i = 0; i < hex.byteLength(); ++i) {
+                outputStream.write(hex.byteAt(i));
+            }
+        }
+    }
+
     public static FileInfo readFileInfo(DataInputStream inputStream) throws IOException {
         String path = inputStream.readUTF();
         long size = inputStream.readLong();
         short mode = inputStream.readShort();
-        String checksum = inputStream.readUTF();
+        HexCharSequence checksum = readHex(inputStream);
         return new FileInfo(path, size, mode, checksum);
     }
 
@@ -32,7 +59,7 @@ import org.saturnine.local.DirState.FileAttrs;
         outputStream.writeUTF(fileInfo.path());
         outputStream.writeLong(fileInfo.size());
         outputStream.writeShort(fileInfo.mode());
-        outputStream.writeUTF(fileInfo.checksum());
+        writeHex(outputStream, fileInfo.checksum());
     }
 
     public static FileAttrs readFileAttrs(DataInputStream inputStream) throws IOException {
@@ -120,8 +147,8 @@ import org.saturnine.local.DirState.FileAttrs;
     }
 
     public static DirDiff readDirDiff(DataInputStream inputStream) throws IOException {
-        String newState = inputStream.readUTF();
-        String oldState = inputStream.readUTF();
+        HexCharSequence newState = readHex(inputStream);
+        HexCharSequence oldState = readHex(inputStream);
         Map<String, FileInfo> addedFiles = readFileInfoMap(inputStream);
         Map<String, FileInfo> modifiedFiles = readFileInfoMap(inputStream);
         Set<String> removedFiles = readStringSet(inputStream);
@@ -130,8 +157,8 @@ import org.saturnine.local.DirState.FileAttrs;
     }
 
     public static void writeDirDiff(DataOutputStream outputStream, DirDiff diff) throws IOException {
-        outputStream.writeUTF(diff.newState());
-        outputStream.writeUTF(diff.oldState());
+        writeHex(outputStream, diff.newState());
+        writeHex(outputStream, diff.oldState());
         writeFileInfoMap(outputStream, diff.addedFiles());
         writeFileInfoMap(outputStream, diff.modifiedFiles());
         writeStringSet(outputStream, diff.removedFiles());
@@ -139,9 +166,9 @@ import org.saturnine.local.DirState.FileAttrs;
     }
 
     public static Changeset readChangeset(DataInputStream inputStream) throws IOException {
-        String id = inputStream.readUTF();
-        String primaryParent = inputStream.readUTF();
-        String secondaryParent = readStringOrNull(inputStream);
+        HexCharSequence id = readHex(inputStream);
+        HexCharSequence primaryParent = readHex(inputStream);
+        HexCharSequence secondaryParent = readHex(inputStream);
         String author = inputStream.readUTF();
         String comment = inputStream.readUTF();
         long timestamp = inputStream.readLong();
@@ -149,9 +176,9 @@ import org.saturnine.local.DirState.FileAttrs;
     }
 
     public static void writeChangeset(DataOutputStream outputStream, Changeset changeset) throws IOException {
-        outputStream.writeUTF(changeset.id());
-        outputStream.writeUTF(changeset.primaryParent());
-        writeStringOrNull(outputStream, changeset.secondaryParent());
+        writeHex(outputStream, changeset.id());
+        writeHex(outputStream, changeset.primaryParent());
+        writeHex(outputStream, changeset.secondaryParent());
         outputStream.writeUTF(changeset.author());
         outputStream.writeUTF(changeset.comment());
         outputStream.writeLong(changeset.timestamp());
