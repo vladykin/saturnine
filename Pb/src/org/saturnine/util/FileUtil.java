@@ -51,10 +51,12 @@ public class FileUtil {
     public static String relativePath(File base, File file) {
         String basePath = base.getPath();
         String filePath = file.getPath();
-        if (filePath.startsWith(basePath) && basePath.length() < filePath.length()) {
+        if (basePath.equals(filePath)) {
+            return "";
+        } else if (filePath.startsWith(basePath + '/')) {
             return filePath.substring(basePath.length() + 1);
         } else {
-            return null;
+            return filePath;
         }
     }
 
