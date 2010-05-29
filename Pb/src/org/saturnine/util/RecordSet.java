@@ -27,7 +27,12 @@ public final class RecordSet {
 
     private RecordSet(File file, boolean create) throws IOException {
         if (create) {
-            FileUtil.empty(file);
+            FileOutputStream outputStream = new FileOutputStream(file);
+            try {
+                writeVersion(outputStream, 1);
+            } finally {
+                outputStream.close();
+            }
         }
         if (!file.exists()) {
             throw new IOException(file.getPath() + " does not exist");
@@ -39,12 +44,12 @@ public final class RecordSet {
         FileInputStream inputStream = new FileInputStream(file);
         try {
             if (inputStream.skip(key.offset) != key.offset) {
-                throw new IOException("Key is invalid");
+                throw new IOException("Failed to seek to offset " + key.offset);
             }
 
             byte[] record = readRecord(inputStream);
             if (record == null) {
-                throw new IOException("Key is invalid");
+                throw new IOException("There is no record at offset " + key.offset);
             }
 
             return new ByteArrayInputStream(record);
@@ -78,6 +83,31 @@ public final class RecordSet {
         outputStream.write(n >>> 16);
         outputStream.write(n >>> 8);
         outputStream.write(n);
+    }
+
+    private static int readVersion(FileInputStream inputStream) throws IOException {
+        int R = inputStream.read();
+        if (R == 'R') {
+            int S = inputStream.read();
+            if (S == 'S') {
+                int version = 0;
+                int ch;
+                while (0 <= (ch = inputStream.read())) {
+                    if ('0' <= ch && ch <= '9') {
+                        version = 10 * version + (ch - '0');
+                    } else if (ch == 0) {
+                        return version;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        throw new IOException("No magic");
+    }
+
+    private static void writeVersion(FileOutputStream outputStream, int version) throws IOException {
+        outputStream.write(String.format("RS%d\u0000", version).getBytes("UTF-8"));
     }
 
     private static byte[] readRecord(FileInputStream inputStream) throws IOException {
@@ -117,6 +147,7 @@ public final class RecordSet {
 
         private Reader() throws IOException {
             this.inputStream = new FileInputStream(file);
+            readVersion(inputStream); // returned version not used yet
         }
 
         public boolean next() throws IOException {
@@ -166,6 +197,12 @@ public final class RecordSet {
 
         private Writer() throws IOException {
             this.outputStream = new FileOutputStream(file, true);
+
+            // Initially position is zero, and is automatically moved
+            // to the end of the file on first write. But we need to
+            // know this position before the first write to calculate the
+            // first record key. Thus this hack.
+            outputStream.getChannel().position(file.length());
         }
 
         public OutputStream outputStream() throws IOException {
