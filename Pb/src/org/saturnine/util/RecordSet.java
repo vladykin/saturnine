@@ -133,7 +133,7 @@ public final class RecordSet {
 
         private final long offset;
 
-        public Key(long offset) {
+        private Key(long offset) {
             this.offset = offset;
         }
     }
