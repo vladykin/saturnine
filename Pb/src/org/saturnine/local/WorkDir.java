@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -153,6 +152,7 @@ public class WorkDir {
         missing.removeAll(clean);
         missing.removeAll(modified);
         missing.removeAll(uncertain);
+        filterMissingFiles(missing);
 
         return new DirScanResult(state.addedFiles(), state.removedFiles(), clean, missing, modified, uncertain, untracked);
     }
@@ -172,11 +172,11 @@ public class WorkDir {
         dirstate.setState(state);
     }
 
-    private void collectFileChanges(File dir, DirState.State state, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked, FilenameFilter filter) {
-        File[] children = dir.listFiles(filter);
+    private void collectFileChanges(File dir, DirState.State state, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked, FilenameFilter addedFilter) {
+        File[] children = dir.listFiles(addedFilter);
         for (File f : children) {
             if (f.isDirectory()) {
-                collectFileChanges(f, state, clean, modified, uncertain, untracked, filter);
+                collectFileChanges(f, state, clean, modified, uncertain, untracked, addedFilter);
             } else {
                 String path = FileUtil.relativePath(basedir, f);
                 FileAttrs oldAttrs = state.knownFiles().get(path);
@@ -202,27 +202,49 @@ public class WorkDir {
     private FilenameFilter getAddedFilter() throws IOException {
         File pbignore = file(".pbignore");
         if (pbignore.exists()) {
-            Set<Pattern> patterns = new HashSet<Pattern>();
-            Scanner scanner = new Scanner(new FileReader(pbignore));
-            try {
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (!line.isEmpty()) {
-                        try {
-                            patterns.add(Pattern.compile(line));
-                        } catch (PatternSyntaxException ex) {
-                            System.err.println("Malformed ignore pattern: " + line);
-                        }
-                    }
-                }
-            } finally {
-                scanner.close();
-            }
+            Set<Pattern> patterns = readPatterns(pbignore);
             patterns.add(Pattern.compile("^\\.pb$"));
             return new PatternFilter(basedir, patterns);
         } else {
             return PB_FILTER;
         }
+    }
+
+    private void filterMissingFiles(Set<String> missing) throws IOException {
+        File pbprovide = file(".pbprovide");
+        if (pbprovide.exists()) {
+            Set<Pattern> patterns = readPatterns(pbprovide);
+            Iterator<String> it = missing.iterator();
+            while (it.hasNext()) {
+                String missingFile = it.next();
+                for (Pattern pattern : patterns) {
+                    if (pattern.matcher(missingFile).find()) {
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static Set<Pattern> readPatterns(File file) throws IOException {
+        Set<Pattern> patterns = new HashSet<Pattern>();
+        Scanner scanner = new Scanner(file);
+        try {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (!line.isEmpty()) {
+                    try {
+                        patterns.add(Pattern.compile(line));
+                    } catch (PatternSyntaxException ex) {
+                        System.err.println("Malformed ignore pattern: " + line);
+                    }
+                }
+            }
+        } finally {
+            scanner.close();
+        }
+        return patterns;
     }
 
     /**
