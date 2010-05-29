@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +12,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import org.saturnine.api.FileInfo;
 import org.saturnine.local.DirState.FileAttrs;
 import org.saturnine.util.FileUtil;
@@ -142,7 +146,7 @@ public class WorkDir {
         Set<String> modified = new HashSet<String>();
         Set<String> uncertain = new HashSet<String>();
         Set<String> untracked = new HashSet<String>();
-        collectFileChanges(basedir, state, clean, modified, uncertain, untracked);
+        collectFileChanges(basedir, state, clean, modified, uncertain, untracked, getAddedFilter());
 
         Set<String> missing = new HashSet<String>(state.knownFiles().keySet());
         missing.removeAll(state.removedFiles());
@@ -168,11 +172,11 @@ public class WorkDir {
         dirstate.setState(state);
     }
 
-    private void collectFileChanges(File dir, DirState.State state, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked) {
-        File[] children = dir.listFiles(PB_FILTER);
+    private void collectFileChanges(File dir, DirState.State state, Set<String> clean, Set<String> modified, Set<String> uncertain, Set<String> untracked, FilenameFilter filter) {
+        File[] children = dir.listFiles(filter);
         for (File f : children) {
             if (f.isDirectory()) {
-                collectFileChanges(f, state, clean, modified, uncertain, untracked);
+                collectFileChanges(f, state, clean, modified, uncertain, untracked, filter);
             } else {
                 String path = FileUtil.relativePath(basedir, f);
                 FileAttrs oldAttrs = state.knownFiles().get(path);
@@ -195,6 +199,59 @@ public class WorkDir {
         }
     }
 
+    private FilenameFilter getAddedFilter() throws IOException {
+        File pbignore = file(".pbignore");
+        if (pbignore.exists()) {
+            Set<Pattern> patterns = new HashSet<Pattern>();
+            Scanner scanner = new Scanner(new FileReader(pbignore));
+            try {
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    if (!line.isEmpty()) {
+                        try {
+                            patterns.add(Pattern.compile(line));
+                        } catch (PatternSyntaxException ex) {
+                            System.err.println("Malformed ignore pattern: " + line);
+                        }
+                    }
+                }
+            } finally {
+                scanner.close();
+            }
+            patterns.add(Pattern.compile("^\\.pb$"));
+            return new PatternFilter(basedir, patterns);
+        } else {
+            return PB_FILTER;
+        }
+    }
+
+    /**
+     * Accepts all files except those matched by at least one pattern.
+     */
+    private static final class PatternFilter implements FilenameFilter {
+        private final File basedir;
+        private final Collection<Pattern> patterns;
+
+        public PatternFilter(File basedir, Collection<Pattern> patterns) {
+            this.basedir = basedir;
+            this.patterns = patterns;
+        }
+
+        @Override
+        public boolean accept(File dir, String name) {
+            String path = FileUtil.joinPath(FileUtil.relativePath(basedir, dir), name);
+            for (Pattern pattern : patterns) {
+                if (pattern.matcher(path).find()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Accepts all files except <code>.pb</code>
+     */
     private static final FilenameFilter PB_FILTER = new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
