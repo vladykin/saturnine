@@ -125,9 +125,8 @@ public class WorkDir {
         dirstate.setState(state);
     }
 
-    public void recordFileAttrs(Collection<String> paths) throws IOException {
-        // also clears all added/copied/removed info
-        DirState.State state = new DirState.State();
+    public void recordFileAttrs(Collection<String> paths, boolean clear) throws IOException {
+        DirState.State state = clear? new DirState.State() : dirstate.getState();
         for (String path : paths) {
             File file = file(path);
             if (!file.exists()) {
@@ -166,6 +165,10 @@ public class WorkDir {
         } else {
             throw new IOException("File " + file + " does not exist");
         }
+    }
+
+    public boolean isWritable() {
+        return basedir.canWrite();
     }
 
     /*package*/ void setState(DirState.State state) throws IOException {

@@ -87,7 +87,7 @@ public class CommitCommand implements PbCommand {
             changelogBuilder.writeChangeset();
             changelogBuilder.close();
 
-            workdir.recordFileAttrs(dirlog.state(diff.newState()).keySet());
+            workdir.recordFileAttrs(dirlog.state(diff.newState()).keySet(), true);
 
         } catch (IOException ex) {
             throw new PbException("IOException", ex);

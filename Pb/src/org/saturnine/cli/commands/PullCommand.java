@@ -77,7 +77,7 @@ public class PullCommand implements PbCommand {
             Map<String, FileInfo> fileInfos = childDirlog.state(tip);
 
             WorkDir workdir = child.getWorkDir();
-            workdir.recordFileAttrs(fileInfos.keySet());
+            workdir.recordFileAttrs(fileInfos.keySet(), true);
 
         } catch (IOException ex) {
             throw new PbException("IOException", ex);

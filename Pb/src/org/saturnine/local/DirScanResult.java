@@ -18,13 +18,13 @@ public final class DirScanResult {
     private final Set<String> untrackedFiles;
 
     public DirScanResult(Map<String, String> addedFiles, Set<String> removedFiles, Set<String> cleanFiles, Set<String> missingFiles, Set<String> modifiedFiles, Set<String> uncertainFiles, Set<String> untrackedFiles) {
-        this.addedFiles = Utils.immutableMapCopy(addedFiles);
-        this.removedFiles = Utils.immutableSetCopy(removedFiles);
-        this.cleanFiles = Utils.immutableSetCopy(cleanFiles);
-        this.missingFiles = Utils.immutableSetCopy(missingFiles);
-        this.modifiedFiles = Utils.immutableSetCopy(modifiedFiles);
-        this.uncertainFiles = Utils.immutableSetCopy(uncertainFiles);
-        this.untrackedFiles = Utils.immutableSetCopy(untrackedFiles);
+        this.addedFiles = addedFiles;
+        this.removedFiles = removedFiles;
+        this.cleanFiles = cleanFiles;
+        this.missingFiles = missingFiles;
+        this.modifiedFiles = modifiedFiles;
+        this.uncertainFiles = uncertainFiles;
+        this.untrackedFiles = untrackedFiles;
     }
 
     public boolean isClean() {
