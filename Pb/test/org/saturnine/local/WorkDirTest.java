@@ -2,8 +2,10 @@ package org.saturnine.local;
 
 import java.io.File;
 import java.util.Collections;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.saturnine.util.FileUtil;
 import static org.junit.Assert.*;
 
 /**
@@ -11,19 +13,22 @@ import static org.junit.Assert.*;
  */
 public class WorkDirTest {
 
-    private FakeFile basedir;
-    private File dirstateFile;
+    private File basedir;
+    private File dirstate;
     private WorkDir workdir;
 
     @Before
     public void setUp() throws Exception {
-        basedir = new FakeFile("/tmp/foo");
-        dirstateFile = new File("build/test/dirstate");
-        workdir = WorkDir.create(dirstateFile, basedir);
+        dirstate = new File("build/test/dirstate");
+        basedir = new File("build/test/workdir");
+        basedir.mkdir();
+        workdir = WorkDir.create(dirstate, basedir);
     }
 
+    @After
     public void tearDown() throws Exception {
-        dirstateFile.delete();
+        FileUtil.delete(dirstate);
+        FileUtil.deleteRecursively(basedir);
     }
 
     @Test
@@ -40,7 +45,7 @@ public class WorkDirTest {
 
     @Test
     public void testAdd() throws Exception {
-        basedir.addChildFile("foo", 5, 35);
+        new File(basedir, "foo").createNewFile();
 
         DirScanResult c1 = workdir.scan();
         assertEquals(Collections.singleton("foo"), c1.getUntrackedFiles());

@@ -42,6 +42,15 @@ public class FileUtil {
         }
     }
 
+    public static void deleteRecursively(File file) throws IOException {
+        if (file.isDirectory()) {
+            for (File child : file.listFiles()) {
+                deleteRecursively(child);
+            }
+        }
+        delete(file);
+    }
+
     public static void rename(File src, File dst) throws IOException {
         if (!src.renameTo(dst)) {
             throw new IOException("Failed to rename " + src + " to " + dst);
