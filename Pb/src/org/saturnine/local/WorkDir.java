@@ -118,9 +118,17 @@ public class WorkDir {
     public void removeFiles(Collection<String> paths) throws IOException {
         DirState.State state = dirstate.getState();
         for (String removedPath : paths) {
-            FileUtil.delete(file(removedPath));
-            state.addedFiles().remove(removedPath);
-            state.removedFiles().add(removedPath);
+            if (state.addedFiles().containsKey(removedPath)) {
+                System.err.println("Forgetting but not removing file " + removedPath);
+                state.addedFiles().remove(removedPath);
+            } else if (!state.knownFiles().containsKey(removedPath)) {
+                System.err.println("Not removing untracked file " + removedPath);
+            } else if (state.removedFiles().contains(removedPath)) {
+                System.err.println("File " + removedPath + " is already removed");
+            } else {
+                FileUtil.delete(file(removedPath));
+                state.removedFiles().add(removedPath);
+            }
         }
         dirstate.setState(state);
     }
