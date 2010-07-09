@@ -64,16 +64,16 @@ public class WorkDir {
 
     public void addFiles(Collection<String> paths) throws IOException {
         DirState.State state = dirstate.getState();
-        addFilesImpl(state, "", paths);
+        addFilesImpl(state, "", paths, getAddedFilter());
         dirstate.setState(state);
     }
 
-    private void addFilesImpl(DirState.State state, String base, Collection<String> paths) throws IOException {
+    private void addFilesImpl(DirState.State state, String base, Collection<String> paths, FilenameFilter addedFilter) throws IOException {
         for (String path : paths) {
             String fullPath = FileUtil.normalizePath(FileUtil.joinPath(base, path));
             File file = file(fullPath);
             if (file.isDirectory()) {
-                addFilesImpl(state, fullPath, Arrays.asList(file.list(PB_FILTER)));
+                addFilesImpl(state, fullPath, Arrays.asList(file.list(addedFilter)), addedFilter);
             } else if (file.isFile()) {
                 if (!state.knownFiles().containsKey(fullPath) &&
                         !state.addedFiles().containsKey(fullPath)) {
