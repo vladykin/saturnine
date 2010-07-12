@@ -1,11 +1,13 @@
 package org.saturnine.local;
 
+import org.junit.Rule;
 import java.io.File;
 import java.util.Collection;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.saturnine.api.Changeset;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -13,21 +15,16 @@ import static org.junit.Assert.*;
  */
 public class ChangelogTest {
 
+    @Rule
+    public final TemporaryFolder tempFolder = new TemporaryFolder();
+
     private File changelogFile;
     private Changelog changelog;
 
-    public ChangelogTest() {
-    }
-
     @Before
     public void setUp() throws Exception {
-        changelogFile = new File("build/test/changelog.test");
+        changelogFile = tempFolder.newFile("changelog");
         changelog = Changelog.create(changelogFile);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        changelogFile.delete();
     }
 
     @Test
@@ -41,8 +38,7 @@ public class ChangelogTest {
         builder.close();
 
         Collection<Changeset> heads = changelog.getHeads();
-        assertEquals(1, heads.size());
-        Changeset head = heads.iterator().next();
-        assertEquals(changeset, head);
+        assertThat(heads, hasItem(changeset));
+        assertThat(heads, hasSize(1));
     }
 }
