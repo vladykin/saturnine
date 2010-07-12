@@ -1,13 +1,16 @@
 package org.saturnine.local;
 
+import org.hamcrest.Matchers;
+import org.junit.rules.TemporaryFolder;
+import org.junit.Rule;
 import java.io.File;
 import java.util.Map;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.saturnine.api.Changeset;
 import org.saturnine.api.DirDiff;
 import org.saturnine.api.FileInfo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -15,18 +18,16 @@ import static org.junit.Assert.*;
  */
 public class DirlogTest {
 
+    @Rule
+    public final TemporaryFolder tempFolder = new TemporaryFolder();
+
     private File dirlogFile;
     private Dirlog dirlog;
 
     @Before
     public void setUp() throws Exception {
-        dirlogFile = new File("build/test/dirlog");
+        dirlogFile = tempFolder.newFile("dirlog");
         dirlog = Dirlog.create(dirlogFile);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        dirlogFile.delete();
     }
 
     @Test
@@ -50,8 +51,8 @@ public class DirlogTest {
             reader.close();
         }
 
-        assertEquals(diff1.newState(), diff2.newState());
-        assertEquals(diff1.oldState(), diff2.oldState());
+        assertThat(diff2.newState(), equalTo(diff1.newState()));
+        assertThat(diff2.oldState(), equalTo(diff1.oldState()));
     }
 
     @Test
@@ -77,14 +78,14 @@ public class DirlogTest {
         }
 
         Map<String, FileInfo> state1 = dirlog.state("0123456789012345678901234567890123456789");
-        assertEquals(1, state1.size());
-        assertEquals(new FileInfo("foo", 123, (short) 0644, "12345678"), state1.get("foo"));
+        assertThat(state1, hasEntry("foo", new FileInfo("foo", 123, (short) 0644, "12345678")));
+        assertThat(state1.entrySet(), hasSize(1));
 
         Map<String, FileInfo> state2 = dirlog.state("1234567890123456789012345678901234567890");
-        assertEquals(1, state2.size());
-        assertEquals(new FileInfo("foo", 234, (short) 0644, "87654321"), state2.get("foo"));
+        assertThat(state2, hasEntry("foo", new FileInfo("foo", 234, (short) 0644, "87654321")));
+        assertThat(state2.entrySet(), hasSize(1));
 
         Map<String, FileInfo> state3 = dirlog.state("2345678901234567890123456789012345678901");
-        assertEquals(0, state3.size());
+        assertThat(state3.entrySet(), Matchers.<Map.Entry<String, FileInfo>>empty());
     }
 }

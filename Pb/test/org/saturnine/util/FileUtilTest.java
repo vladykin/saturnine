@@ -1,6 +1,7 @@
 package org.saturnine.util;
 
 import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -8,23 +9,20 @@ import static org.junit.Assert.*;
  */
 public class FileUtilTest {
 
-    public FileUtilTest() {
-    }
-
     @Test
     public void testJoinPath() {
-        assertEquals("", FileUtil.joinPath("", ""));
-        assertEquals("a", FileUtil.joinPath("", "a"));
-        assertEquals("a", FileUtil.joinPath("a", ""));
-        assertEquals("a/b", FileUtil.joinPath("a", "b"));
+        assertThat(FileUtil.joinPath("", ""), is(""));
+        assertThat(FileUtil.joinPath("", "a"), is("a"));
+        assertThat(FileUtil.joinPath("a", ""), is("a"));
+        assertThat(FileUtil.joinPath("a", "b"), is("a/b"));
     }
 
     @Test
     public void testNormalizePath() {
-        assertEquals("", FileUtil.normalizePath(""));
-        assertEquals("a", FileUtil.normalizePath("a"));
-        assertEquals("a", FileUtil.normalizePath("/a/"));
-        assertEquals("a", FileUtil.normalizePath("./a/."));
-        assertEquals("a/b/c", FileUtil.normalizePath("//a//b//c//"));
+        assertThat(FileUtil.normalizePath(""), is(""));
+        assertThat(FileUtil.normalizePath("a"), is("a"));
+        assertThat(FileUtil.normalizePath("/a/"), is("a"));
+        assertThat(FileUtil.normalizePath("./a/."), is("a"));
+        assertThat(FileUtil.normalizePath("//a//b//c//"), is("a/b/c"));
     }
 }

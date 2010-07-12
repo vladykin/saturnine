@@ -2,9 +2,11 @@ package org.saturnine.util;
 
 import java.io.File;
 import java.io.InputStream;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -12,26 +14,24 @@ import static org.junit.Assert.*;
  */
 public class RecordSetTest {
 
+    @Rule
+    public final TemporaryFolder tempFolder = new TemporaryFolder();
+
     private File recordsetFile;
     private RecordSet recordset;
 
     @Before
     public void setUp() throws Exception {
-        recordsetFile = new File("build/test/recordset");
+        recordsetFile = tempFolder.newFile("recordset");
         recordset = RecordSet.create(recordsetFile);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        recordsetFile.delete();
     }
 
     @Test
     public void testReaderNext() throws Exception {
         RecordSet.Reader reader = recordset.newReader();
         try {
-            assertNotNull(reader);
-            assertFalse(reader.next());
+            assertThat(reader, notNullValue());
+            assertThat(reader.next(), is(false));
         } finally {
             reader.close();
         }
@@ -45,8 +45,8 @@ public class RecordSetTest {
 
         reader = recordset.newReader();
         try {
-            assertTrue(reader.next());
-            assertFalse(reader.next());
+            assertThat(reader.next(), is(true));
+            assertThat(reader.next(), is(false));
         } finally {
             reader.close();
         }
@@ -73,15 +73,15 @@ public class RecordSetTest {
         byte[] buf = new byte[4];
         RecordSet.Reader reader = recordset.newReader();
         try {
-            assertTrue(reader.next());
-            assertEquals(3, reader.inputStream().read(buf));
-            assertArrayEquals(new byte[]{1, 2, 3, 0}, buf);
+            assertThat(reader.next(), is(true));
+            assertThat(reader.inputStream().read(buf), is(3));
+            assertThat(buf, is(new byte[]{1, 2, 3, 0}));
             reader.inputStream().close();
-            assertTrue(reader.next());
-            assertEquals(3, reader.inputStream().read(buf));
-            assertArrayEquals(new byte[]{3, 2, 1, 0}, buf);
+            assertThat(reader.next(), is(true));
+            assertThat(reader.inputStream().read(buf), is(3));
+            assertThat(buf, is(new byte[]{3, 2, 1, 0}));
             reader.inputStream().close();
-            assertFalse(reader.next());
+            assertThat(reader.next(), is(false));
         } finally {
             reader.close();
         }
@@ -91,6 +91,7 @@ public class RecordSetTest {
     public void testReaderException1() throws Exception {
         RecordSet.Reader reader = recordset.newReader();
         try {
+            // no current record, because next() has not been called
             reader.inputStream();
         } finally {
             reader.close();
@@ -108,8 +109,9 @@ public class RecordSetTest {
 
         RecordSet.Reader reader = recordset.newReader();
         try {
-            assertTrue(reader.next());
-            assertFalse(reader.next());
+            assertThat(reader.next(), is(true));
+            assertThat(reader.next(), is(false));
+            // no current record, because we are after last record
             reader.inputStream();
         } finally {
             reader.close();
@@ -135,12 +137,12 @@ public class RecordSetTest {
 
         byte[] buf = new byte[5];
         InputStream r1 = recordset.getRecord(k1);
-        assertNotNull(r1);
-        assertEquals(2, r1.read(buf));
-        assertArrayEquals(new byte[] {-6, -7, 0, 0, 0}, buf);
+        assertThat(r1, notNullValue());
+        assertThat(r1.read(buf), is(2));
+        assertThat(buf, is(new byte[] {-6, -7, 0, 0, 0}));
         InputStream r2 = recordset.getRecord(k2);
-        assertNotNull(r2);
-        assertEquals(4, r2.read(buf));
-        assertArrayEquals(new byte[] {14, 15, 16, 17, 0}, buf);
+        assertThat(r2, notNullValue());
+        assertThat(r2.read(buf), is(4));
+        assertThat(buf, is(new byte[] {14, 15, 16, 17, 0}));
     }
 }
