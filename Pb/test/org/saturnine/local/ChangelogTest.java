@@ -1,5 +1,6 @@
 package org.saturnine.local;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import java.io.File;
 import java.util.Collection;
@@ -29,7 +30,7 @@ public class ChangelogTest {
 
     @Test
     public void testGetHeads() throws Exception {
-        assertTrue(changelog.getHeads().isEmpty());
+        assertThat(changelog.getHeads(), Matchers.<Changeset>empty());
 
         Changelog.Builder builder = changelog.newBuilder();
         builder.id("1234567890123456789012345678901234567890");
