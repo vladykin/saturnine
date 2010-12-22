@@ -21,6 +21,18 @@
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                   <archive>
+                      <manifest>
+                          <mainClass>org.saturnine.cli.Main</mainClass>
+                      </manifest>
+                   </archive>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <properties>
