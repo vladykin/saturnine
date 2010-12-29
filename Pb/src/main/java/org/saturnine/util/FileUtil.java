@@ -15,6 +15,10 @@ public class FileUtil {
     private FileUtil() {
     }
 
+    public static File getCWD() {
+        return new File(".").getAbsoluteFile();
+    }
+
     public static String joinPath(String basedir, String path) {
         if (basedir.isEmpty()) {
             return path;

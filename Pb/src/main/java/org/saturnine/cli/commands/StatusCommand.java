@@ -1,6 +1,5 @@
 package org.saturnine.cli.commands;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -13,6 +12,7 @@ import org.saturnine.cli.PbCommand;
 import org.saturnine.local.DirScanResult;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
+import org.saturnine.util.FileUtil;
 import org.saturnine.util.HexCharSequence;
 
 /**
@@ -32,7 +32,7 @@ public class StatusCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        LocalRepository repository = LocalRepository.find(new File("."));
+        LocalRepository repository = LocalRepository.find(FileUtil.getCWD());
         try {
             final WorkDir workDir = repository.getWorkDir();
             DirScanResult scanResult = workDir.scan();

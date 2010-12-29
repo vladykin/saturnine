@@ -1,6 +1,5 @@
 package org.saturnine.cli.commands;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -9,6 +8,7 @@ import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.Changelog;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -27,7 +27,7 @@ public class LogCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        LocalRepository repository = LocalRepository.open(new File("."));
+        LocalRepository repository = LocalRepository.open(FileUtil.getCWD());
         Changelog changelog = repository.getChangelog();
         try {
             Changelog.Reader reader = changelog.newReader();
