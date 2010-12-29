@@ -4,6 +4,7 @@ import java.io.File;
 import org.saturnine.api.PbException;
 import org.saturnine.cli.PbCommand;
 import org.saturnine.local.LocalRepository;
+import org.saturnine.util.FileUtil;
 
 /**
  * @author Alexey Vladykin
@@ -22,7 +23,7 @@ public class PushCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        LocalRepository repository = LocalRepository.find(new File("."));
+        LocalRepository repository = LocalRepository.find(FileUtil.getCWD());
 
         String parentPath = repository.getProperty(LocalRepository.PROP_PARENT);
         if (parentPath == null) {

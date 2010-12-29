@@ -14,6 +14,7 @@ import org.saturnine.local.Changelog;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
+import org.saturnine.util.FileUtil;
 import org.saturnine.util.HexCharSequence;
 
 /**
@@ -33,7 +34,7 @@ public class PullCommand implements PbCommand {
 
     @Override
     public void execute(String[] args) throws PbException {
-        LocalRepository repository = LocalRepository.find(new File("."));
+        LocalRepository repository = LocalRepository.find(FileUtil.getCWD());
 
         String parentPath = repository.getProperty(LocalRepository.PROP_PARENT);
         if (parentPath == null) {

@@ -1,6 +1,5 @@
 package org.saturnine.cli.commands;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
@@ -14,6 +13,7 @@ import org.saturnine.local.DirScanResult;
 import org.saturnine.local.Dirlog;
 import org.saturnine.local.LocalRepository;
 import org.saturnine.local.WorkDir;
+import org.saturnine.util.FileUtil;
 import org.saturnine.util.HexCharSequence;
 
 /**
@@ -37,7 +37,7 @@ public class CommitCommand implements PbCommand {
             throw new PbException("Please specify commit message");
         }
 
-        LocalRepository repository = LocalRepository.find(new File("."));
+        LocalRepository repository = LocalRepository.find(FileUtil.getCWD());
         try {
             WorkDir workdir = repository.getWorkDir();
 
